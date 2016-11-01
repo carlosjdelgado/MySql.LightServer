@@ -1,10 +1,7 @@
 language: csharp
-solution: MySql.LightServer.sln
+dist: trusty
+sudo: required
 mono: none
-dotnet: 1.0.0-preview2-003131
-install:
-  - nuget restore solution-name.sln
-  - nuget install NUnit.Runners -Version 2.6.4 -OutputDirectory testrunner
+dotnet: 1.0.0-preview2-003121
 script:
-  - xbuild /p:Configuration=Release MySql.LightServer.sln
-  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe ./MyPoject.Tests/bin/Release/MySql.LightServer.Tests.dll
+  - dotnet restore && dotnet build **/project.json
