@@ -14,8 +14,8 @@ namespace MySql.LightServer.Services
         private const string ErrmsgFileName = "errmsg.sys";
 
         private const string ErrmsgResourceName = "MySql.LightServer.ServerFiles.errmsg.sys";
-        private const string Win32MySqlResourceName = "MySql.LightServer.ServerFiles.win32.mysqld.exe";
-        private const string LinuxMySqlResourceName = "MySql.LightServer.ServerFiles.linux.mysqld";
+        private const string Win32MySqlResourceName = "MySql.LightServer.ServerFiles.Win32.mysqld.exe";
+        private const string LinuxMySqlResourceName = "MySql.LightServer.ServerFiles.Linux.mysqld";
 
         public static void Extract(string serverDirectory)
         {

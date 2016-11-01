@@ -38,12 +38,5 @@ namespace MySql.LightServer.Tests
             dbServer.StartServer();
             dbServer.ShutDown();
         }
-
-        [TestCase]
-        public void Test()
-        {
-            var server = MySqlLightServer.Instance;
-            server.StartServer();
-        }
     }
 }

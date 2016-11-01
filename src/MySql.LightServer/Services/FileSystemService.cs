@@ -65,7 +65,7 @@ namespace MySql.LightServer.Services
 
         public static string GetBaseDirectory()
         {
-            return new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.Parent.FullName.ToString();
+            return Path.Combine(Path.GetTempPath(), "MySqlLightServer");
         }        
     }
 }
