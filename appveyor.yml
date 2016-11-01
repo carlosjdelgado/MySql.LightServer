@@ -1,0 +1,17 @@
+version: 0.0.{build}-beta
+configuration: Release
+build_script:
+- cmd: >-
+    dotnet restore && dotnet build **/project.json
+
+    cd .\src\MySql.LightServer
+
+    dotnet version %APPVEYOR_BUILD_VERSION%
+
+    dotnet pack --configuration Release
+
+    cd ..\..
+test_script:
+- cmd: dotnet test ./src/MySql.LightServer.Tests
+artifacts:
+- path: '**\*.nupkg'
