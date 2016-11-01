@@ -6,4 +6,3 @@ dotnet: 1.0.0-preview2-003121
 script:
   - dotnet restore 
   - dotnet build **/project.json
-  - dotnet test ./src/MySql.LightServer.Tests -c Release -f netcoreapp1.0
