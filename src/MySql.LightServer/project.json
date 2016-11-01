@@ -3,8 +3,8 @@
     "embed": {
       "includeFiles": [
         "ServerFiles/errmsg.sys",
-        "ServerFiles/win32/mysqld.exe",
-        "ServerFiles/linux/mysqld"
+        "ServerFiles/Win32/mysqld.exe",
+        "ServerFiles/Linux/mysqld"
       ]
     }
   },
