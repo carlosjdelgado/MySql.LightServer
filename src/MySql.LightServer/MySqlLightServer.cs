@@ -84,6 +84,8 @@ namespace MySql.LightServer
             _process.StartInfo.FileName = Path.Combine(_mysqlDirectory, "mysqld");
             _process.StartInfo.Arguments = string.Join(" ", arguments);
             _process.StartInfo.UseShellExecute = false;
+            _process.StartInfo.RedirectStandardOutput = true;
+            _process.StartInfo.RedirectStandardError = true;
             _process.StartInfo.CreateNoWindow = true;
 
             _process.Start();
