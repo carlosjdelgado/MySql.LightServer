@@ -83,12 +83,12 @@ namespace MySql.LightServer
             _process = new Process();
             _process.StartInfo.FileName = Path.Combine(_mysqlDirectory, "mysqld");
             _process.StartInfo.Arguments = string.Join(" ", arguments);
-            _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.RedirectStandardOutput = true;
-            _process.StartInfo.RedirectStandardError = true;
-            _process.StartInfo.CreateNoWindow = true;
+            _process.StartInfo.UseShellExecute = false;
+            _process.StartInfo.CreateNoWindow = false;
 
             _process.Start();
+            Console.Write(_process.StandardOutput.ReadToEnd());
             File.WriteAllText(_runningInstancesFile, _process.Id.ToString());
 
             WaitForStartup();
