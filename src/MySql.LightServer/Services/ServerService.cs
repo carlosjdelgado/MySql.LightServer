@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace MySql.LightServer.Services
 {
-    public static class ServerFilesService
+    public static class ServerService
     {
         private const string LightServerAssemblyName = "MySql.LightServer";
 
@@ -69,7 +69,7 @@ namespace MySql.LightServer.Services
             FileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, LinuxMySqlFileName));
         }
 
-        private static OperatingSystem GetOsPlatform()
+        public static OperatingSystem GetOsPlatform()
         {
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

@@ -1,6 +1,8 @@
 ﻿using MySql.Data.MySqlClient;
+using MySql.LightServer.Enums;
 using MySql.LightServer.Services;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -62,11 +64,10 @@ namespace MySql.LightServer
 
             KillPreviousProcesses();
             FileSystemService.CreateDirectories(_mysqlDirectory, _dataRootDirectory, _dataDirectory);
-            ServerFilesService.Extract(_mysqlDirectory);
+            ServerService.Extract(_mysqlDirectory);
 
-            var arguments = new[]
+            var arguments = new List<string>()
             {
-                $"--standalone",
                 $"--console",
                 $"--basedir=\"{_mysqlDirectory}\"",
                 $"--lc-messages-dir=\"{_mysqlDirectory}\"",
@@ -79,6 +80,11 @@ namespace MySql.LightServer
                 $"--innodb_log_file_size=1048576",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
+
+            if (ServerService.GetOsPlatform() == OperatingSystem.Windows)
+            {
+                arguments.Add($"--standalone");
+            }
 
             _process = new Process();
             _process.StartInfo.FileName = Path.Combine(_mysqlDirectory, "mysqld");
