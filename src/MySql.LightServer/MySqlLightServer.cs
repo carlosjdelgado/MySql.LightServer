@@ -88,7 +88,6 @@ namespace MySql.LightServer
             _process.StartInfo.CreateNoWindow = false;
 
             _process.Start();
-            Console.Write(_process.StandardOutput.ReadToEnd());
             File.WriteAllText(_runningInstancesFile, _process.Id.ToString());
 
             WaitForStartup();
