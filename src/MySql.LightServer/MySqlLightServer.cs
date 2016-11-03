@@ -73,7 +73,6 @@ namespace MySql.LightServer
                 $"--lc-messages-dir=\"{_mysqlDirectory}\"",
                 $"--datadir=\"{_dataDirectory}\"",
                 $"--skip-grant-tables",
-                $"--enable-named-pipe",
                 $"--port={_serverPort.ToString()}",
                 $"--innodb_fast_shutdown=2",
                 $"--innodb_doublewrite=OFF",
@@ -83,7 +82,10 @@ namespace MySql.LightServer
 
             if (ServerService.GetOsPlatform() == OperatingSystem.Windows)
             {
-                arguments.Add($"--standalone");
+                arguments.AddRange(new List<string>() {
+                    $"--standalone",
+                    $"--enable-named-pipe"
+                });
             }
 
             _process = new Process();
