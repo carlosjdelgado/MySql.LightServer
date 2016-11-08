@@ -1,6 +1,8 @@
 ﻿using MySql.Data.MySqlClient;
 using MySql.LightServer.Enums;
 using MySql.LightServer.Services;
+using MySql.Server.Mappers;
+using MySql.Server.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,43 +16,22 @@ namespace MySql.LightServer
     /// </summary>
     public class MySqlLightServer
     {
-        private string _mysqlDirectory;
-        private string _dataDirectory;
-        private string _dataRootDirectory;
-        private string _runningInstancesFile;
-        private int _serverPort = 3306;
+        private FileSystemService _fileSystemService;
+        private ServerService _serverService;
 
+        private ServerInfo _serverInfo;
         private Process _process;
         private static MySqlLightServer _instance;
 
-        private const string ConnectionStringPattern = "Server=127.0.0.1;Port={0};Protocol=pipe;";
-        private const string ConnectionStringWithDatabasePattern = "Server=127.0.0.1;Port={0};Protocol=pipe;Database={1};";
+        private const int DefaultServerPort = 3306;
         private const string TempServerFolder = "tempServer";
         private const string DataFolder = "data";
         private const string RunningInstancesFile = "running_instances";
 
-        public int ServerPort => _serverPort;
-        public int? ProcessId => GetProcessId();
+        public int ServerPort => _serverInfo.Port;
+        public int? ProcessId => _serverInfo.ProcessId;
+        public string ConnectionString => _serverInfo.ConnectionString;
         public static MySqlLightServer Instance => GetInstance();
-
-        /// <summary>
-        /// Get a connection string for the server (no database selected)
-        /// </summary>
-        /// <returns>A connection string for the server</returns>
-        public string GetConnectionString()
-        {
-            return string.Format(ConnectionStringPattern, _serverPort.ToString());
-        }
-
-        /// <summary>
-        /// Get a connection string for the server and a specified database
-        /// </summary>
-        /// <param name="databaseName">The name of the database</param>
-        /// <returns>A connection string for the server and database</returns>
-        public string GetConnectionString(string databaseName)
-        {
-            return string.Format(ConnectionStringWithDatabasePattern, _serverPort.ToString(), databaseName);
-        }
 
         /// <summary>
         /// Starts the server and creates all files and folders necessary
@@ -62,41 +43,12 @@ namespace MySql.LightServer
                 return;
             }
 
-            KillPreviousProcesses();
-            FileSystemService.CreateDirectories(_mysqlDirectory, _dataRootDirectory, _dataDirectory);
-            ServerService.Extract(_mysqlDirectory);
+            _fileSystemService.CreateDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo));
+            _serverService.Extract(_serverInfo.ServerDirectory);
+            _process = _serverService.Start(_serverInfo);
+            _serverInfo.ProcessId = _process.Id;
 
-            var arguments = new List<string>()
-            {
-                $"--console",
-                $"--basedir=\"{_mysqlDirectory}\"",
-                $"--lc-messages-dir=\"{_mysqlDirectory}\"",
-                $"--datadir=\"{_dataDirectory}\"",
-                $"--skip-grant-tables",
-                $"--port={_serverPort.ToString()}",
-                $"--innodb_fast_shutdown=2",
-                $"--innodb_doublewrite=OFF",
-                $"--innodb_log_file_size=1048576",
-                $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
-            };
-
-            if (ServerService.GetOsPlatform() == OperatingSystem.Windows)
-            {
-                arguments.AddRange(new List<string>() {
-                    $"--standalone",
-                    $"--enable-named-pipe"
-                });
-            }
-
-            _process = new Process();
-            _process.StartInfo.FileName = Path.Combine(_mysqlDirectory, "mysqld");
-            _process.StartInfo.Arguments = string.Join(" ", arguments);
-            _process.StartInfo.RedirectStandardOutput = true;
-            _process.StartInfo.UseShellExecute = false;
-            _process.StartInfo.CreateNoWindow = false;
-
-            _process.Start();
-            File.WriteAllText(_runningInstancesFile, _process.Id.ToString());
+            File.WriteAllText(_serverInfo.RunningInstancesFilePath, _serverInfo.ProcessId.ToString());
 
             WaitForStartup();
         }
@@ -107,7 +59,7 @@ namespace MySql.LightServer
         /// <param name="serverPort">The port on which the server should listen</param>
         public void StartServer(int serverPort)
         {
-            _serverPort = serverPort;
+            _serverInfo.Port = serverPort;
             StartServer();
         }
 
@@ -116,18 +68,7 @@ namespace MySql.LightServer
         /// </summary>
         public void KillPreviousProcesses()
         {
-            if (!File.Exists(_runningInstancesFile))
-                return;
-
-            var runningInstancesIds = File.ReadAllLines(_runningInstancesFile);
-            foreach(var runningInstanceId in runningInstancesIds)
-            {
-                var process = Process.GetProcessById(int.Parse(runningInstanceId));
-                process.Kill();
-            }
-
-            FileSystemService.RemoveDirectories(10, _mysqlDirectory, _dataRootDirectory, _dataDirectory);
-            FileSystemService.RemoveFiles(_runningInstancesFile);
+            _serverService.KillPreviousProcesses(_serverInfo);
         }
 
         /// <summary>
@@ -142,16 +83,23 @@ namespace MySql.LightServer
                 _process = null;
             }
 
-            FileSystemService.RemoveDirectories(10, _mysqlDirectory, _dataRootDirectory, _dataDirectory);
-            FileSystemService.RemoveFiles(_runningInstancesFile);
+            _fileSystemService.RemoveDirectories(10, ServerInfoMapper.ToDirectoryList(_serverInfo));
+            _fileSystemService.RemoveFiles(_serverInfo.RunningInstancesFilePath);
         }
 
         private MySqlLightServer()
         {
-            _mysqlDirectory = Path.Combine(FileSystemService.GetBaseDirectory(), TempServerFolder);
-            _dataRootDirectory = Path.Combine(FileSystemService.GetBaseDirectory(), DataFolder);
-            _dataDirectory = Path.Combine(_dataRootDirectory, Guid.NewGuid().ToString());
-            _runningInstancesFile = Path.Combine(FileSystemService.GetBaseDirectory(), RunningInstancesFile);
+            _fileSystemService = new FileSystemService();
+            _serverService = new ServerService();
+
+            _serverInfo = new ServerInfo
+            {
+                ServerGuid = Guid.NewGuid(),
+                Port = DefaultServerPort,
+                ServerDirectory = Path.Combine(_fileSystemService.GetBaseDirectory(), TempServerFolder),
+                DataRootDirectory = Path.Combine(_fileSystemService.GetBaseDirectory(), DataFolder),
+                RunningInstancesFilePath = Path.Combine(_fileSystemService.GetBaseDirectory(), RunningInstancesFile),
+            };
         }
 
         private static MySqlLightServer GetInstance()
@@ -168,9 +116,10 @@ namespace MySql.LightServer
         {
             if (_process.HasExited)
             {
-                return null;
+                _serverInfo.ProcessId = null;
             }
-            return _process.Id;
+
+            return _serverInfo.ProcessId;
         }
 
         private void WaitForStartup()
@@ -178,7 +127,7 @@ namespace MySql.LightServer
             var totalWaitTime = TimeSpan.Zero;
             var sleepTime = TimeSpan.FromMilliseconds(100);
 
-            var testConnection = new MySqlConnection(GetConnectionString());
+            var testConnection = new MySqlConnection(_serverInfo.ConnectionString);
             while (!testConnection.State.Equals(System.Data.ConnectionState.Open))
             {
                 try

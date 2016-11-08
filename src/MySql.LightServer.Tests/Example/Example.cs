@@ -21,17 +21,17 @@ namespace Example
             dbServer.StartServer();
 
             //Create a database and select it
-            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), string.Format("CREATE DATABASE {0};USE {0};", _testDatabaseName));
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, string.Format("CREATE DATABASE {0};USE {0};", _testDatabaseName));
 
             //Create a table
-            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(_testDatabaseName), "CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
 
             //Insert data (large chunks of data can of course be loaded from a file)
-            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(_testDatabaseName), "INSERT INTO testTable (`id`,`value`) VALUES (1, 'some value')");
-            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(_testDatabaseName), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "INSERT INTO testTable (`id`,`value`) VALUES (1, 'some value')");
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
 
             //Load data
-            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(dbServer.GetConnectionString(_testDatabaseName), "select * from testTable WHERE id = 2"))
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(dbServer.ConnectionString, "select * from testTable WHERE id = 2"))
             {
                 reader.Read();
 

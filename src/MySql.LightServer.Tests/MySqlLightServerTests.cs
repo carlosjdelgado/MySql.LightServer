@@ -25,7 +25,7 @@ namespace MySql.LightServer.Tests
         {
             var server = MySqlLightServer.Instance;
             server.StartServer(3366);
-            MySqlHelper.ExecuteNonQuery(server.GetConnectionString(), "CREATE DATABASE testserver; USE testserver;");
+            MySqlHelper.ExecuteNonQuery(server.ConnectionString, "CREATE DATABASE testserver; USE testserver;");
             server.ShutDown();
         }
 

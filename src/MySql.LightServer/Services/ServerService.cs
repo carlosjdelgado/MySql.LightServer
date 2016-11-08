@@ -1,12 +1,20 @@
 ﻿using MySql.LightServer.Enums;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System;
+using MySql.Server.Models;
+using System.Collections.Generic;
+using MySql.Server.Mappers;
 
 namespace MySql.LightServer.Services
 {
-    public static class ServerService
+    internal class ServerService
     {
+        private FileSystemService _fileSystemService;
+        private OperatingSystem _platform;
+
         private const string LightServerAssemblyName = "MySql.LightServer";
 
         private const string Win32MySqlFileName = "mysqld.exe";
@@ -17,12 +25,18 @@ namespace MySql.LightServer.Services
         private const string Win32MySqlResourceName = "MySql.LightServer.ServerFiles.Win32.mysqld.exe";
         private const string LinuxMySqlResourceName = "MySql.LightServer.ServerFiles.Linux.mysqld";
 
-        public static void Extract(string serverDirectory)
+        public ServerService()
         {
-            var platform = GetOsPlatform();
-            if (!ServerIsDeployed(serverDirectory, platform))
+            _platform = GetOsPlatform();
+            _fileSystemService = new FileSystemService();
+
+        }
+
+        public void Extract(string serverDirectory)
+        {
+            if (!ServerIsDeployed(serverDirectory))
             {
-                switch(platform)
+                switch (_platform)
                 {
                     case OperatingSystem.Linux:
                         ExtractLinuxServer(serverDirectory);
@@ -34,9 +48,93 @@ namespace MySql.LightServer.Services
             }
         }
 
-        private static bool ServerIsDeployed(string serverDirectory, OperatingSystem platform)
+        public Process Start(ServerInfo serverInfo)
         {
-            switch (platform)
+            KillPreviousProcesses(serverInfo);
+            switch(_platform)
+            {
+                case OperatingSystem.Windows:
+                    return StartWindowsServer(serverInfo);
+                case OperatingSystem.Linux:
+                    return StartLinuxServer(serverInfo);
+            }
+
+            return null;
+        }
+
+        public void KillPreviousProcesses(ServerInfo serverInfo)
+        {
+            if (!File.Exists(serverInfo.RunningInstancesFilePath))
+                return;
+
+            var runningInstancesIds = File.ReadAllLines(serverInfo.RunningInstancesFilePath);
+            foreach (var runningInstanceId in runningInstancesIds)
+            {
+                var process = Process.GetProcessById(int.Parse(runningInstanceId));
+                process.Kill();
+            }
+
+            _fileSystemService.RemoveDirectories(10, ServerInfoMapper.ToDirectoryList(serverInfo));
+            _fileSystemService.RemoveFiles(serverInfo.RunningInstancesFilePath);
+        }
+
+        private Process StartLinuxServer(ServerInfo serverInfo)
+        {
+            var arguments = new List<string>()
+            {
+                $"--console",
+                $"--basedir=\"{serverInfo.ServerDirectory}\"",
+                $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
+                $"--datadir=\"{Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())}\"",
+                $"--skip-grant-tables",
+                $"--port={serverInfo.Port}",
+                $"--innodb_fast_shutdown=2",
+                $"--innodb_doublewrite=OFF",
+                $"--innodb_log_file_size=1048576",
+                $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
+            };
+            var process = CreateProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld"), arguments);
+            process.Start();
+            return process;
+        }
+
+        private Process StartWindowsServer(ServerInfo serverInfo)
+        {
+            var arguments = new List<string>()
+            {
+                $"--console",
+                $"--standalone",
+                $"--enable-named-pipe",               
+                $"--basedir=\"{serverInfo.ServerDirectory}\"",
+                $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
+                $"--datadir=\"{Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())}\"",
+                $"--skip-grant-tables",
+                $"--port={serverInfo.Port}",
+                $"--innodb_fast_shutdown=2",
+                $"--innodb_doublewrite=OFF",
+                $"--innodb_log_file_size=1048576",
+                $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
+            };
+            var process = CreateProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld.exe"), arguments);
+            process.Start();
+            return process;
+        }
+
+        private Process CreateProcess(string executablePath, List<string> arguments)
+        {
+            var process = new Process();
+            process.StartInfo.FileName = Path.Combine(executablePath);
+            process.StartInfo.Arguments = string.Join(" ", arguments);
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = false;
+
+            return process;
+        }
+
+        private bool ServerIsDeployed(string serverDirectory)
+        {
+            switch (_platform)
             {
                 case OperatingSystem.Windows:
                     return new FileInfo(Path.Combine(serverDirectory, Win32MySqlFileName)).Exists;
@@ -47,29 +145,29 @@ namespace MySql.LightServer.Services
             return false;
         }
 
-        private static void ExtractWindowsServer(string serverDirectory)
+        private void ExtractWindowsServer(string serverDirectory)
         {
             var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
             var errmsg = assembly.GetManifestResourceStream(ErrmsgResourceName);
             var mysqld = assembly.GetManifestResourceStream(Win32MySqlResourceName);
 
-            FileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
-            FileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, Win32MySqlFileName));
+            _fileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
+            _fileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, Win32MySqlFileName));
         }
 
-        private static void ExtractLinuxServer(string serverDirectory)
+        private void ExtractLinuxServer(string serverDirectory)
         {
             var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
             var errmsg = assembly.GetManifestResourceStream(ErrmsgResourceName);
             var mysqld = assembly.GetManifestResourceStream(LinuxMySqlResourceName);
 
-            FileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
-            FileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, LinuxMySqlFileName));
+            _fileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
+            _fileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, LinuxMySqlFileName));
         }
 
-        public static OperatingSystem GetOsPlatform()
+        private OperatingSystem GetOsPlatform()
         {
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

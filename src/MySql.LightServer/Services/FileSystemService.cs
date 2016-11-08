@@ -1,11 +1,12 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 namespace MySql.LightServer.Services
 {
-    public static class FileSystemService
+    internal class FileSystemService
     {
-        public static void CreateDirectories(params string[] directoryNames)
+        public void CreateDirectories(List<string> directoryNames)
         {
             foreach (string directoryName in directoryNames)
             {
@@ -19,7 +20,7 @@ namespace MySql.LightServer.Services
             }
         }
 
-        public static void RemoveDirectories(int retries, params string[] directoryNames)
+        public void RemoveDirectories(int retries, List<string> directoryNames)
         {
             foreach (string directoryName in directoryNames)
             {
@@ -44,7 +45,7 @@ namespace MySql.LightServer.Services
             }
         }
 
-        public static void RemoveFiles(params string[] fileNames)
+        public void RemoveFiles(params string[] fileNames)
         {
             foreach(var fileName in fileNames)
             {
@@ -55,7 +56,7 @@ namespace MySql.LightServer.Services
             }
         }
 
-        public static void CopyStreamToFile(Stream stream, string fileName)
+        public void CopyStreamToFile(Stream stream, string fileName)
         {
             using (var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
@@ -63,7 +64,7 @@ namespace MySql.LightServer.Services
             }
         }
 
-        public static string GetBaseDirectory()
+        public string GetBaseDirectory()
         {
             return Path.Combine(Path.GetTempPath(), "MySqlLightServer");
         }        
