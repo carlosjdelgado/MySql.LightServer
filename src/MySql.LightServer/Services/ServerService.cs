@@ -8,6 +8,7 @@ using MySql.LightServer.Models;
 using System.Collections.Generic;
 using MySql.LightServer.Mappers;
 using MySql.Data.MySqlClient;
+using System.IO.Compression;
 
 namespace MySql.LightServer.Services
 {
@@ -18,19 +19,14 @@ namespace MySql.LightServer.Services
 
         private const string LightServerAssemblyName = "MySql.LightServer";
 
-        private const string Win32MySqlFileName = "mysqld.exe";
-        private const string LinuxMySqlFileName = "mysqld";
-        private const string ErrmsgFileName = "errmsg.sys";
-
-        private const string ErrmsgResourceName = "MySql.LightServer.ServerFiles.errmsg.sys";
-        private const string Win32MySqlResourceName = "MySql.LightServer.ServerFiles.Win32.mysqld.exe";
-        private const string LinuxMySqlResourceName = "MySql.LightServer.ServerFiles.Linux.mysqld";
+        private const string CommonServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-common.zip";
+        private const string Win32ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-win32.zip";
+        private const string LinuxServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
 
         public ServerService()
         {
             _platform = GetOsPlatform();
             _fileSystemService = new FileSystemService();
-
         }
 
         public void Extract(string serverDirectory)
@@ -99,7 +95,6 @@ namespace MySql.LightServer.Services
             return process;
         }
 
-
         private Process StartWindowsServer(ServerInfo serverInfo)
         {
             var arguments = new List<string>()
@@ -136,12 +131,9 @@ namespace MySql.LightServer.Services
 
         private bool ServerIsDeployed(string serverDirectory)
         {
-            switch (_platform)
+            if (Directory.Exists(serverDirectory))
             {
-                case OperatingSystem.Windows:
-                    return new FileInfo(Path.Combine(serverDirectory, Win32MySqlFileName)).Exists;
-                case OperatingSystem.Linux:
-                    return new FileInfo(Path.Combine(serverDirectory, LinuxMySqlFileName)).Exists;
+                return (Directory.GetFiles(serverDirectory, "mysqld*").Length > 0);
             }
 
             return false;
@@ -151,22 +143,22 @@ namespace MySql.LightServer.Services
         {
             var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
-            var errmsg = assembly.GetManifestResourceStream(ErrmsgResourceName);
-            var mysqld = assembly.GetManifestResourceStream(Win32MySqlResourceName);
+            var commonServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(CommonServerFilesResourceName));
+            var win32ServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(Win32ServerFilesResourceName));
 
-            _fileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
-            _fileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, Win32MySqlFileName));
+            commonServerFilesCompressed.ExtractToDirectory(serverDirectory);
+            win32ServerFilesCompressed.ExtractToDirectory(serverDirectory);
         }
 
         private void ExtractLinuxServer(string serverDirectory)
         {
             var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
-            var errmsg = assembly.GetManifestResourceStream(ErrmsgResourceName);
-            var mysqld = assembly.GetManifestResourceStream(LinuxMySqlResourceName);
+            var commonServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(CommonServerFilesResourceName));
+            var linuxServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(LinuxServerFilesResourceName));
 
-            _fileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
-            _fileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, LinuxMySqlFileName));
+            commonServerFilesCompressed.ExtractToDirectory(serverDirectory);
+            linuxServerFilesCompressed.ExtractToDirectory(serverDirectory);
         }
 
         private void WaitForStartup(ServerInfo serverInfo)

@@ -2,15 +2,17 @@
   "buildOptions": {
     "embed": {
       "includeFiles": [
-        "ServerFiles/errmsg.sys",
-        "ServerFiles/Win32/mysqld.exe",
-        "ServerFiles/Linux/mysqld"
+        "ServerFiles/mysql-lightserver-common.zip",
+        "ServerFiles/mysql-lightserver-win32.zip",
+        "ServerFiles/mysql-lightserver-linux.zip"
       ]
     }
   },
   "dependencies": {
     "MySql.Data": "7.0.6-IR31",
     "NETStandard.Library": "1.6.0",
+    "System.IO.Compression": "4.1.0",
+    "System.IO.Compression.ZipFile": "4.0.1",
     "System.Threading.Thread": "4.0.0"
   },
   "frameworks": {
