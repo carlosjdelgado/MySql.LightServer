@@ -1,11 +1,8 @@
-﻿using MySql.Server.Models;
-using System;
+﻿using MySql.LightServer.Models;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace MySql.Server.Mappers
+namespace MySql.LightServer.Mappers
 {
     internal static class ServerInfoMapper
     {

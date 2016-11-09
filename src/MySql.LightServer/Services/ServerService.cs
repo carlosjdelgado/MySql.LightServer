@@ -4,9 +4,10 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System;
-using MySql.Server.Models;
+using MySql.LightServer.Models;
 using System.Collections.Generic;
-using MySql.Server.Mappers;
+using MySql.LightServer.Mappers;
+using MySql.Data.MySqlClient;
 
 namespace MySql.LightServer.Services
 {
@@ -93,10 +94,11 @@ namespace MySql.LightServer.Services
                 $"--innodb_log_file_size=1048576",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
-            var process = CreateProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld"), arguments);
-            process.Start();
+            var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld"), arguments);
+            WaitForStartup(serverInfo);
             return process;
         }
+
 
         private Process StartWindowsServer(ServerInfo serverInfo)
         {
@@ -115,12 +117,12 @@ namespace MySql.LightServer.Services
                 $"--innodb_log_file_size=1048576",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
-            var process = CreateProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld.exe"), arguments);
-            process.Start();
+            var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld.exe"), arguments);
+            WaitForStartup(serverInfo);
             return process;
         }
 
-        private Process CreateProcess(string executablePath, List<string> arguments)
+        private Process StartProcess(string executablePath, List<string> arguments)
         {
             var process = new Process();
             process.StartInfo.FileName = Path.Combine(executablePath);
@@ -128,7 +130,7 @@ namespace MySql.LightServer.Services
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = false;
-
+            process.Start();
             return process;
         }
 
@@ -165,6 +167,28 @@ namespace MySql.LightServer.Services
 
             _fileSystemService.CopyStreamToFile(errmsg, Path.Combine(serverDirectory, ErrmsgFileName));
             _fileSystemService.CopyStreamToFile(mysqld, Path.Combine(serverDirectory, LinuxMySqlFileName));
+        }
+
+        private void WaitForStartup(ServerInfo serverInfo)
+        {
+            var totalTimeToWait = TimeSpan.FromSeconds(10);
+            var startup = DateTime.Now;
+
+            var testConnection = new MySqlConnection(serverInfo.ConnectionString);
+            while (totalTimeToWait > (DateTime.Now - startup))
+            {
+                try
+                {
+                    testConnection.Open();
+                    Console.WriteLine("Database connection established after " + (DateTime.Now - startup));
+                    testConnection.ClearAllPoolsAsync();
+                    testConnection.Close();
+                    testConnection.Dispose();
+                    return;
+                }
+                catch { }
+            }
+            throw new Exception("Server could not be started.");
         }
 
         private OperatingSystem GetOsPlatform()

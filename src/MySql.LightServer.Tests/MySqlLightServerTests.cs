@@ -1,5 +1,4 @@
 ﻿using MySql.Data.MySqlClient;
-using MySql.LightServer;
 using System.Diagnostics;
 using NUnit.Framework;
 

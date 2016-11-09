@@ -1,13 +1,9 @@
-﻿using MySql.Data.MySqlClient;
-using MySql.LightServer.Enums;
-using MySql.LightServer.Services;
-using MySql.Server.Mappers;
-using MySql.Server.Models;
+﻿using MySql.LightServer.Services;
+using MySql.LightServer.Mappers;
+using MySql.LightServer.Models;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 
 namespace MySql.LightServer
 {
@@ -29,7 +25,7 @@ namespace MySql.LightServer
         private const string RunningInstancesFile = "running_instances";
 
         public int ServerPort => _serverInfo.Port;
-        public int? ProcessId => _serverInfo.ProcessId;
+        public int? ProcessId => GetProcessId();
         public string ConnectionString => _serverInfo.ConnectionString;
         public static MySqlLightServer Instance => GetInstance();
 
@@ -49,8 +45,6 @@ namespace MySql.LightServer
             _serverInfo.ProcessId = _process.Id;
 
             File.WriteAllText(_serverInfo.RunningInstancesFilePath, _serverInfo.ProcessId.ToString());
-
-            WaitForStartup();
         }
 
         /// <summary>
@@ -120,37 +114,6 @@ namespace MySql.LightServer
             }
 
             return _serverInfo.ProcessId;
-        }
-
-        private void WaitForStartup()
-        {
-            var totalWaitTime = TimeSpan.Zero;
-            var sleepTime = TimeSpan.FromMilliseconds(100);
-
-            var testConnection = new MySqlConnection(_serverInfo.ConnectionString);
-            while (!testConnection.State.Equals(System.Data.ConnectionState.Open))
-            {
-                try
-                {
-                    testConnection.Open();
-                }
-                catch
-                {
-                    testConnection.Close();
-                    Thread.Sleep(sleepTime);
-                    totalWaitTime += sleepTime;
-                }
-
-                if (totalWaitTime > TimeSpan.FromSeconds(10))
-                {
-                    throw new Exception("Server could not be started.");
-                }
-            }
-
-            Console.WriteLine("Database connection established after " + totalWaitTime.ToString());
-            testConnection.ClearAllPoolsAsync();
-            testConnection.Close();
-            testConnection.Dispose();
         }
 
         ~MySqlLightServer()
