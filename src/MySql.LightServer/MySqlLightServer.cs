@@ -77,7 +77,7 @@ namespace MySql.LightServer
                 _process = null;
             }
 
-            _fileSystemService.RemoveDirectories(10, ServerInfoMapper.ToDirectoryList(_serverInfo));
+            _fileSystemService.RemoveDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo), 10);
             _fileSystemService.RemoveFiles(_serverInfo.RunningInstancesFilePath);
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -20,28 +21,29 @@ namespace MySql.LightServer.Services
             }
         }
 
-        public void RemoveDirectories(int retries, List<string> directoryNames)
+        public void RemoveDirectories(List<string> directoryNames, int retries)
         {
             foreach (string directoryName in directoryNames)
             {
                 var directoryInfo = new DirectoryInfo(directoryName);
                 if (directoryInfo.Exists)
                 {
-                    var retryCount = 0;
-                    while (retryCount < retries)
-                    {
-                        try
-                        {
-                            directoryInfo.Delete(true);
-                            return;
-                        }
-                        catch
-                        {
-                            retryCount++;
-                            Thread.Sleep(50);
-                        }
-                    }
+                    RemoveDirectory(directoryName, retries);
                 }
+            }
+        }
+
+        private void RemoveDirectory(string directoryName, int retries)
+        {
+            var directoryInfo = new DirectoryInfo(directoryName);
+            for (var retryCount = 1; retryCount <= retries; retryCount++)
+            {
+                try
+                {
+                    directoryInfo.Delete(true);
+                    return;
+                }
+                catch { }
             }
         }
 
