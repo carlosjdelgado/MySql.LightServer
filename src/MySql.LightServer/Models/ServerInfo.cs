@@ -4,7 +4,7 @@ namespace MySql.LightServer.Models
 {
     internal class ServerInfo
     {
-        private const string ConnectionStringPattern = "Server=127.0.0.1;Port={0};Protocol=pipe;";
+        private const string ConnectionStringPattern = "server=127.0.0.1;uid=root;port={0};";
 
         public Guid ServerGuid { get; set; }
         public int Port { get; set; }

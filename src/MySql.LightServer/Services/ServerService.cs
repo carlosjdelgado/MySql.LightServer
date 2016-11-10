@@ -80,7 +80,8 @@ namespace MySql.LightServer.Services
             var arguments = new List<string>()
             {
                 $"--console",
-                $"--initialize",
+                $"--initialize-insecure",
+                $"--explicit_defaults_for_timestamp=1",
                 $"--basedir=\"{serverInfo.ServerDirectory}\"",
                 $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
                 $"--datadir=\"{Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())}\"",
@@ -88,7 +89,7 @@ namespace MySql.LightServer.Services
                 $"--port={serverInfo.Port}",
                 $"--innodb_fast_shutdown=2",
                 $"--innodb_doublewrite=OFF",
-                $"--innodb_log_file_size=1048576",
+                $"--innodb_log_file_size=4M",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
             var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld"), arguments);
@@ -102,6 +103,7 @@ namespace MySql.LightServer.Services
             {
                 $"--console",
                 $"--standalone",
+                $"--explicit_defaults_for_timestamp=1",
                 $"--enable-named-pipe",               
                 $"--basedir=\"{serverInfo.ServerDirectory}\"",
                 $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
@@ -110,7 +112,7 @@ namespace MySql.LightServer.Services
                 $"--port={serverInfo.Port}",
                 $"--innodb_fast_shutdown=2",
                 $"--innodb_doublewrite=OFF",
-                $"--innodb_log_file_size=1048576",
+                $"--innodb_log_file_size=4M",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
             var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld.exe"), arguments);
