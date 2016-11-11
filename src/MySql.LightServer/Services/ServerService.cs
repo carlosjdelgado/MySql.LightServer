@@ -80,8 +80,6 @@ namespace MySql.LightServer.Services
             var arguments = new List<string>()
             {
                 $"--console",
-                $"--initialize-insecure",
-                $"--explicit_defaults_for_timestamp=1",
                 $"--basedir=\"{serverInfo.ServerDirectory}\"",
                 $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
                 $"--datadir=\"{Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())}\"",
