@@ -10,9 +10,7 @@ namespace MySql.LightServer.Models
         public int Port { get; set; }
         public int? ProcessId { get; set; }
         public string ServerDirectory { get; set; }
-        public string DataRootDirectory { get; set; }
         public string RunningInstancesFilePath { get; set; }
-        public string DatabaseSelected { get; set; }
         public string ConnectionString => GetConnectionString();
 
         private string GetConnectionString()

@@ -11,8 +11,7 @@ namespace MySql.LightServer.Mappers
             return new List<string>()
             {
                 serverInfo.ServerDirectory,
-                serverInfo.DataRootDirectory,
-                Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())
+                Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())
             };
         }
 

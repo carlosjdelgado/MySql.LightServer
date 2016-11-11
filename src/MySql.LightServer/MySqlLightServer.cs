@@ -20,8 +20,6 @@ namespace MySql.LightServer
         private static MySqlLightServer _instance;
 
         private const int DefaultServerPort = 3306;
-        private const string TempServerFolder = "tempServer";
-        private const string DataFolder = "data";
         private const string RunningInstancesFile = "running_instances";
 
         public int ServerPort => _serverInfo.Port;
@@ -40,7 +38,7 @@ namespace MySql.LightServer
             }
 
             _fileSystemService.CreateDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo));
-            _serverService.Extract(_serverInfo.ServerDirectory);
+            _serverService.Extract(Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString()));
             _process = _serverService.Start(_serverInfo);
             _serverInfo.ProcessId = _process.Id;
 
@@ -90,8 +88,7 @@ namespace MySql.LightServer
             {
                 ServerGuid = Guid.NewGuid(),
                 Port = DefaultServerPort,
-                ServerDirectory = Path.Combine(_fileSystemService.GetBaseDirectory(), TempServerFolder),
-                DataRootDirectory = Path.Combine(_fileSystemService.GetBaseDirectory(), DataFolder),
+                ServerDirectory = Path.Combine(_fileSystemService.GetBaseDirectory()),
                 RunningInstancesFilePath = Path.Combine(_fileSystemService.GetBaseDirectory(), RunningInstancesFile),
             };
         }

@@ -79,18 +79,14 @@ namespace MySql.LightServer.Services
         {
             var arguments = new List<string>()
             {
-                $"--console",
-                $"--basedir=\"{serverInfo.ServerDirectory}\"",
-                $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
-                $"--datadir=\"{Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())}\"",
-                $"--skip-grant-tables",
                 $"--port={serverInfo.Port}",
-                $"--innodb_fast_shutdown=2",
-                $"--innodb_doublewrite=OFF",
-                $"--innodb_log_file_size=4M",
-                $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
+                $"--ledir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin")}\"",
+                $"--socket=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.sock")}\"",
+                $"--basedir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())}\"",
+                $"--datadir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "data")}\"",
+                $"--pid-file=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.pid")}\""                
             };
-            var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld"), arguments);
+            var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin", "mysqld_safe"), arguments);
             WaitForStartup(serverInfo);
             return process;
         }
@@ -103,9 +99,9 @@ namespace MySql.LightServer.Services
                 $"--standalone",
                 $"--explicit_defaults_for_timestamp=1",
                 $"--enable-named-pipe",               
-                $"--basedir=\"{serverInfo.ServerDirectory}\"",
-                $"--lc-messages-dir=\"{serverInfo.ServerDirectory}\"",
-                $"--datadir=\"{Path.Combine(serverInfo.DataRootDirectory, serverInfo.ServerGuid.ToString())}\"",
+                $"--basedir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())}\"",
+                $"--lc-messages-dir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "share")}\"",
+                $"--datadir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "data")}\"",
                 $"--skip-grant-tables",
                 $"--port={serverInfo.Port}",
                 $"--innodb_fast_shutdown=2",
@@ -113,7 +109,7 @@ namespace MySql.LightServer.Services
                 $"--innodb_log_file_size=4M",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
-            var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, "mysqld.exe"), arguments);
+            var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin", "mysqld.exe"), arguments);
             WaitForStartup(serverInfo);
             return process;
         }
@@ -144,10 +140,7 @@ namespace MySql.LightServer.Services
         {
             var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
-            var commonServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(CommonServerFilesResourceName));
             var win32ServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(Win32ServerFilesResourceName));
-
-            commonServerFilesCompressed.ExtractToDirectory(serverDirectory);
             win32ServerFilesCompressed.ExtractToDirectory(serverDirectory);
         }
 
@@ -155,10 +148,7 @@ namespace MySql.LightServer.Services
         {
             var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
-            var commonServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(CommonServerFilesResourceName));
             var linuxServerFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(LinuxServerFilesResourceName));
-
-            commonServerFilesCompressed.ExtractToDirectory(serverDirectory);
             linuxServerFilesCompressed.ExtractToDirectory(serverDirectory);
         }
 

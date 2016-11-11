@@ -2,7 +2,6 @@
   "buildOptions": {
     "embed": {
       "includeFiles": [
-        "ServerFiles/mysql-lightserver-common.zip",
         "ServerFiles/mysql-lightserver-win32.zip",
         "ServerFiles/mysql-lightserver-linux.zip"
       ]
