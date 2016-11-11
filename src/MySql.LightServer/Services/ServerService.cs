@@ -18,8 +18,6 @@ namespace MySql.LightServer.Services
         private OperatingSystem _platform;
 
         private const string LightServerAssemblyName = "MySql.LightServer";
-
-        private const string CommonServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-common.zip";
         private const string Win32ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-win32.zip";
         private const string LinuxServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
 
@@ -84,7 +82,8 @@ namespace MySql.LightServer.Services
                 $"--socket=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.sock")}\"",
                 $"--basedir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())}\"",
                 $"--datadir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "data")}\"",
-                $"--pid-file=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.pid")}\""                
+                $"--pid-file=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.pid")}\"",
+                $"--log-error=\"{Path.Combine(serverInfo.ServerDirectory, "error.log")}\""              
             };
             var process = StartProcess(Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin", "mysqld_safe"), arguments);
             WaitForStartup(serverInfo);
