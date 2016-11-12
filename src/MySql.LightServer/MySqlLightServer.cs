@@ -4,6 +4,7 @@ using MySql.LightServer.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
+using MySql.LightServer.Server;
 
 namespace MySql.LightServer
 {
@@ -13,17 +14,16 @@ namespace MySql.LightServer
     public class MySqlLightServer
     {
         private FileSystemService _fileSystemService;
-        private ServerService _serverService;
+        private IServer _server;
 
         private ServerInfo _serverInfo;
-        private Process _process;
         private static MySqlLightServer _instance;
 
         private const int DefaultServerPort = 3306;
         private const string RunningInstancesFile = "running_instances";
 
         public int ServerPort => _serverInfo.Port;
-        public int? ProcessId => GetProcessId();
+        //public int? ProcessId => GetProcessId();
         public string ConnectionString => _serverInfo.ConnectionString;
         public static MySqlLightServer Instance => GetInstance();
 
@@ -32,17 +32,14 @@ namespace MySql.LightServer
         /// </summary>
         public void StartServer()
         {
-            if (_process != null && !_process.HasExited)
+            if (_server.IsRunning())
             {
                 return;
             }
 
             _fileSystemService.CreateDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo));
-            _serverService.Extract(Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString()));
-            _process = _serverService.Start(_serverInfo);
-            _serverInfo.ProcessId = _process.Id;
-
-            File.WriteAllText(_serverInfo.RunningInstancesFilePath, _serverInfo.ProcessId.ToString());
+            _server.Extract(Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString()));
+            _server.Start(_serverInfo);
         }
 
         /// <summary>
@@ -56,25 +53,11 @@ namespace MySql.LightServer
         }
 
         /// <summary>
-        /// Kill previous instances of MySqlServer
-        /// </summary>
-        public void KillPreviousProcesses()
-        {
-            _serverService.KillPreviousProcesses(_serverInfo);
-        }
-
-        /// <summary>
         /// Shuts down the server and removes all files related to it
         /// </summary>
         public void ShutDown()
         {
-            if (_process != null && !_process.HasExited)
-            {
-                _process.Kill();
-                _process.WaitForExit();
-                _process = null;
-            }
-
+            _server.ShutDown();
             _fileSystemService.RemoveDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo), 10);
             _fileSystemService.RemoveFiles(_serverInfo.RunningInstancesFilePath);
         }
@@ -82,14 +65,14 @@ namespace MySql.LightServer
         private MySqlLightServer()
         {
             _fileSystemService = new FileSystemService();
-            _serverService = new ServerService();
+            _server = ServerFactory.GetServer();
 
             _serverInfo = new ServerInfo
             {
                 ServerGuid = Guid.NewGuid(),
                 Port = DefaultServerPort,
                 ServerDirectory = Path.Combine(_fileSystemService.GetBaseDirectory()),
-                RunningInstancesFilePath = Path.Combine(_fileSystemService.GetBaseDirectory(), RunningInstancesFile),
+                //RunningInstancesFilePath = Path.Combine(_fileSystemService.GetBaseDirectory(), RunningInstancesFile),
             };
         }
 
@@ -103,24 +86,14 @@ namespace MySql.LightServer
             return _instance;
         }
 
-        private int? GetProcessId()
-        {
-            if (_process.HasExited)
-            {
-                _serverInfo.ProcessId = null;
-            }
-
-            return _serverInfo.ProcessId;
-        }
-
         ~MySqlLightServer()
         {
-            if (_process != null)
-            {
-                _process.Kill();
-                _process.Dispose();
-                _process = null;
-            }
+            //if (_process != null)
+            //{
+            //    _process.Kill();
+            //    _process.Dispose();
+            //    _process = null;
+            //}
 
             if (_instance != null)
             {

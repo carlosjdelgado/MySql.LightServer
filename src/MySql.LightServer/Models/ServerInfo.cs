@@ -8,7 +8,6 @@ namespace MySql.LightServer.Models
 
         public Guid ServerGuid { get; set; }
         public int Port { get; set; }
-        public int? ProcessId { get; set; }
         public string ServerDirectory { get; set; }
         public string RunningInstancesFilePath { get; set; }
         public string ConnectionString => GetConnectionString();
