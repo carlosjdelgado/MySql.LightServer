@@ -1,14 +1,13 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Diagnostics;
-
-using Xunit;
+using NUnit.Framework;
 
 namespace MySql.LightServer.Tests
 {
-
+    [TestFixture]
     public class MySqlLightServerTests
     {
-        [Fact]
+        [TestCase]
         public void KillProcess()
         {
             var previousProcessCount = Process.GetProcessesByName("mysqld").Length;
@@ -17,10 +16,10 @@ namespace MySql.LightServer.Tests
             database.StartServer();
             database.ShutDown();
             
-            Assert.Equal(previousProcessCount, Process.GetProcessesByName("mysqld").Length);
+            Assert.AreEqual(previousProcessCount, Process.GetProcessesByName("mysqld").Length, "should kill the running process");
         }
 
-        [Fact]
+        [TestCase]
         public void StartServerOnSpecifiedPort()
         {
             var server = MySqlLightServer.Instance;
@@ -29,7 +28,7 @@ namespace MySql.LightServer.Tests
             server.ShutDown();
         }
 
-        [Fact]
+        [TestCase]
         public void MultipleProcessesInARow()
         {
             var dbServer = MySqlLightServer.Instance;

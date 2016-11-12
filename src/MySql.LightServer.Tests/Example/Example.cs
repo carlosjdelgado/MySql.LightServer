@@ -1,10 +1,10 @@
 ﻿using MySql.Data.MySqlClient;
 using MySql.LightServer;
-using Xunit;
+using NUnit.Framework;
 
 namespace Example
 {
-
+    [TestFixture]
     public class Example
     {
         private static readonly string _testDatabaseName = "testserver";
@@ -12,7 +12,7 @@ namespace Example
         /// <summary>
         /// Example of a simple test: Start a server, create a database and add data to it
         /// </summary>
-        [Fact]
+        [TestCase]
         public void ExampleTest()
         {
             //Setting up and starting the server
@@ -35,7 +35,7 @@ namespace Example
             {
                 reader.Read();
 
-                Assert.Equal("test value", reader.GetString("value"));
+                Assert.AreEqual("test value", reader.GetString("value"), "Inserted and read string should match");
             }
 
             //Shutdown server
