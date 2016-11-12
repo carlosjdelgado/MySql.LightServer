@@ -79,7 +79,7 @@ namespace MySql.LightServer.Server
 
         private void KillPreviousProcesses(ServerInfo serverInfo)
         {
-            if (!File.Exists(serverInfo.RunningInstancesFilePath))
+            if (!File.Exists(Path.Combine(serverInfo.ServerDirectory, RunningInstancesFile)))
                 return;
 
             var runningInstancesIds = File.ReadAllLines(Path.Combine(serverInfo.ServerDirectory, RunningInstancesFile));
@@ -131,6 +131,11 @@ namespace MySql.LightServer.Server
         {
             if (this.IsRunning())
             {
+                if (!File.Exists(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile)))
+                {
+                    return;
+                }
+
                 var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile));
                 foreach (var runningInstanceId in runningInstancesIds)
                 {
@@ -147,6 +152,11 @@ namespace MySql.LightServer.Server
 
         public bool IsRunning()
         {
+            if (!File.Exists(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile)))
+            {
+                return false;
+            }
+
             var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile));
             foreach (var runningInstanceId in runningInstancesIds)
             {
