@@ -5,20 +5,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using MySql.LightServer.Models;
 
 namespace MySql.LightServer
 {
     internal static class ServerFactory
     {
-        public static IServer GetServer()
+        public static IServer GetServer(ServerInfo _serverInfo)
         {
             var platform = GetOsPlatform();
             switch (platform)
             {
                 case OperatingSystem.Windows:
-                    return new WindowsServer();
+                    return new WindowsServer(_serverInfo);
                 case OperatingSystem.Linux:
-                    return new LinuxServer();
+                    return new LinuxServer(_serverInfo);
             }
 
             throw new Exception("Current operating system is not supported");

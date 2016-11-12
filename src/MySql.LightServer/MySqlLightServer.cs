@@ -65,7 +65,6 @@ namespace MySql.LightServer
         private MySqlLightServer()
         {
             _fileSystemService = new FileSystemService();
-            _server = ServerFactory.GetServer();
 
             _serverInfo = new ServerInfo
             {
@@ -74,6 +73,8 @@ namespace MySql.LightServer
                 ServerDirectory = Path.Combine(_fileSystemService.GetBaseDirectory()),
                 //RunningInstancesFilePath = Path.Combine(_fileSystemService.GetBaseDirectory(), RunningInstancesFile),
             };
+
+            _server = ServerFactory.GetServer(_serverInfo);
         }
 
         private static MySqlLightServer GetInstance()

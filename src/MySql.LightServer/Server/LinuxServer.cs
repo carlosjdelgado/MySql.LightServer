@@ -17,15 +17,16 @@ namespace MySql.LightServer.Server
     {
         private readonly FileSystemService _fileSystemService;
         private Process _process;
-        private string _serverDirectory;
+        private ServerInfo _serverInfo;
 
         private const string RunningInstancesFile = "running_instances";
         private const string MysqldPidFile = "mysql-light-server.pid";
         private const string LightServerAssemblyName = "MySql.LightServer";
         private const string ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
 
-        public LinuxServer()
+        public LinuxServer(ServerInfo serverInfo)
         {
+            _serverInfo = serverInfo;
             _fileSystemService = new FileSystemService();
         }
 
@@ -37,7 +38,6 @@ namespace MySql.LightServer.Server
 
                 var serverFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(ServerFilesResourceName));
                 serverFilesCompressed.ExtractToDirectory(serverDirectory);
-                _serverDirectory = serverDirectory;
             }
         }
 
@@ -53,28 +53,28 @@ namespace MySql.LightServer.Server
 
         public Process Start(ServerInfo serverInfo)
         {
-            KillPreviousProcesses(serverInfo);
+            KillPreviousProcesses(_serverInfo);
             var arguments = new List<string>()
             {
-                $"--port={serverInfo.Port}",
-                $"--ledir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin")}\"",
-                $"--lc-messages-dir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "share")}\"",
-                $"--socket=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.sock")}\"",
-                $"--basedir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())}\"",
-                $"--datadir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "data")}\"",
-                $"--pid-file=\"{Path.Combine(serverInfo.ServerDirectory, MysqldPidFile)}\"",
-                $"--log-error=\"{Path.Combine(serverInfo.ServerDirectory, "error.log")}\""
+                $"--port={_serverInfo.Port}",
+                $"--ledir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "bin")}\"",
+                $"--lc-messages-dir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "share")}\"",
+                $"--socket=\"{Path.Combine(_serverInfo.ServerDirectory, "mysql-light-server.sock")}\"",
+                $"--basedir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString())}\"",
+                $"--datadir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "data")}\"",
+                $"--pid-file=\"{Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile)}\"",
+                $"--log-error=\"{Path.Combine(_serverInfo.ServerDirectory, "error.log")}\""
             };
-            _process = StartProcess(Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin", "mysqld_safe"), arguments);
-            WaitForStartup(serverInfo);
+            _process = StartProcess(Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "bin", "mysqld_safe"), arguments);
+            WaitForStartup(_serverInfo);
             WriteRunningInstancesFile();
             return _process;
         }
 
         private void WriteRunningInstancesFile()
         {
-            File.WriteAllText(Path.Combine(_serverDirectory, RunningInstancesFile), _process.Id.ToString());
-            File.AppendAllText(Path.Combine(_serverDirectory, RunningInstancesFile), File.ReadAllText(Path.Combine(_serverDirectory, MysqldPidFile)));
+            File.WriteAllText(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), _process.Id.ToString());
+            File.AppendAllText(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), File.ReadAllText(Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile)));
         }
 
         private void KillPreviousProcesses(ServerInfo serverInfo)
@@ -131,7 +131,7 @@ namespace MySql.LightServer.Server
         {
             if (this.IsRunning())
             {
-                var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverDirectory, RunningInstancesFile));
+                var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile));
                 foreach (var runningInstanceId in runningInstancesIds)
                 {
                     var process = Process.GetProcessById(int.Parse(runningInstanceId));
@@ -147,7 +147,7 @@ namespace MySql.LightServer.Server
 
         public bool IsRunning()
         {
-            var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverDirectory, RunningInstancesFile));
+            var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile));
             foreach (var runningInstanceId in runningInstancesIds)
             {
                 var process = Process.GetProcessById(int.Parse(runningInstanceId));

@@ -22,7 +22,7 @@ namespace MySql.LightServer.Server
         private const string LightServerAssemblyName = "MySql.LightServer";
         private const string ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-win32.zip";
 
-        public WindowsServer()
+        public WindowsServer(ServerInfo serverInfo)
         {
             _fileSystemService = new FileSystemService();
         }
