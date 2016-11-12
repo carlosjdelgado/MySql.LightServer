@@ -1,11 +1,11 @@
 {
   "version": "1.0.0-*",
-  "testRunner": "nunit",
+  "testRunner": "xunit",
   "dependencies": {
-    "dotnet-test-nunit": "3.4.0-beta-2",
+    "xunit": "2.2.0-beta2-build3300",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "MySql.LightServer": "1.0.0-*",
-    "NETStandard.Library": "1.6.0",
-    "NUnit": "3.5.0"
+    "NETStandard.Library": "1.6.0"
   },
 
   "frameworks": {
