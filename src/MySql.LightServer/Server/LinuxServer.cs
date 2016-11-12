@@ -76,8 +76,12 @@ namespace MySql.LightServer.Server
             var processIds = new List<string>
             {
                 _process.Id.ToString(),
-                File.ReadAllText(Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile))
             };
+
+            using (var fs = File.OpenText(Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile)))
+            {
+                processIds.Add(fs.ReadLine());
+            }
 
             File.WriteAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), processIds);
         }
