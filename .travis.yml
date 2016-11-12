@@ -9,4 +9,3 @@ before_install:
 script:
   - dotnet restore && dotnet build **/project.json
   - dotnet test ./src/MySql.LightServer.Tests
-  - cat /tmp/MySqlLightServer/error.log
