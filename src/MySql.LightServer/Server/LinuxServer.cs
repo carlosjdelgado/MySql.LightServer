@@ -73,8 +73,13 @@ namespace MySql.LightServer.Server
 
         private void WriteRunningInstancesFile()
         {
-            File.WriteAllText(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), _process.Id.ToString());
-            File.AppendAllText(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), File.ReadAllText(Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile)));
+            var processIds = new List<string>
+            {
+                _process.Id.ToString(),
+                File.ReadAllText(Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile))
+            };
+
+            File.WriteAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), processIds);
         }
 
         private void KillPreviousProcesses(ServerInfo serverInfo)
