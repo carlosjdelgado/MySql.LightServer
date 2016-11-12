@@ -9,3 +9,10 @@ before_install:
 script:
   - dotnet restore && dotnet build **/project.json
   - dotnet test ./src/MySql.LightServer.Tests
+notifications:
+  webhooks:
+    urls:
+      - secure: "mWvKSEb/0GFboOQIKO1sgjHPRIQ+S+vh/LNfHIlOXxrMDx/GGfeBO78HzgwLPRaAlmcz8irx5IRSeXDPquDWM1u2Ic6NDQ7B/cDHhoMzmbC1VKTZlFAJ32I3pCocnchnntKjWgFFjE37/PuJMbxTHSBuXJhqGGvp+dIJ92phKzj/4IT5HK67GtFOBqflDDLdNEVcUuvBzVqIF8343lf+uIa3A0vktMOVtC5K7xcfU0J9ydiwafkR3Wqf3Mk7AdCLRm8icpGgIq8g9mtNpacN7hIOeqalw+wbT3+lk0Oebh2wF7KrHS5xoDOasBNMN73H0OWRbLBGjPEmou2caMygFUtZVTdkuxgkjmUcdsvXJIQHxMgVcJYNleOF4mplSsb7OgF2j32kN2GlVec7RPA3Bn0ztGSc8R+mZzpn+gD0CHKmeHotptng9ayqAJ5KSk92fr2WMpqMnxfeXZe91ReUaQwtp7GUptie/TXpayaw9wQpKjmbmCEzjrmbM4Qe744XQfgYV2VToWRKUBS9qFl1Nlq3por063x4tcFg/V3S1+PWKspJzVH01X0iYhRdhYjVyxjepORqkWBgjS3Bpk/16B4p72yeyjahT0JkhePh6R2uKD6LRD18BAGIQkpr+GhekQJQ1LW2kcagPd2XE7RuuvwFkiNBeJJK3kBHhCLI0JM="
+    on_success: always
+    on_failure: never
+    on_start: never
