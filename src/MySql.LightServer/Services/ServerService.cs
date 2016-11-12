@@ -79,6 +79,7 @@ namespace MySql.LightServer.Services
             {
                 $"--port={serverInfo.Port}",
                 $"--ledir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin")}\"",
+                $"--lc-messages-dir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "share")}\"",
                 $"--socket=\"{Path.Combine(serverInfo.ServerDirectory, "mysql-light-server.sock")}\"",
                 $"--basedir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())}\"",
                 $"--datadir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "data")}\"",
