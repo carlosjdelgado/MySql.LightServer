@@ -118,9 +118,9 @@ namespace MySql.LightServer.Services
             var process = new Process();
             process.StartInfo.FileName = Path.Combine(executablePath);
             process.StartInfo.Arguments = string.Join(" ", arguments);
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = false;
+            //process.StartInfo.RedirectStandardOutput = true;
+            //process.StartInfo.UseShellExecute = false;
+            //process.StartInfo.CreateNoWindow = false;
             process.Start();
             return process;
         }
