@@ -22,5 +22,22 @@
   "tools": {
     "dotnet-version": "1.1.0"
   },
-  "version": "1.0.0-*"
+  "version": "1.0.0-*",
+  "title": "MySql.LightServer",
+  "authors": [
+    "Carlos Jiménez Delgado <mail@carlosjdelgado.com>"
+  ],
+  "description": "MySql light server for C# tests.",
+  "packOptions": {
+    "iconUrl": "https://raw.githubusercontent.com/carlosjdelgado/MySql.LightServer/master/icon.png",
+    "repository": {
+      "url": "https://github.com/carlosjdelgado/MySql.LightServer"
+    },
+    "licenseUrl": "https://www.gnu.org/licenses/gpl.html",
+    "tags": [
+      "mysql",
+      "test",
+      "light"
+    ]
+  }
 }
