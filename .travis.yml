@@ -3,9 +3,6 @@ dist: trusty
 sudo: required
 mono: none
 dotnet: 1.0.0-preview2-003121
-env:
-  global:
-    - secure: "E6WaJoGJO0N4YgQmIXh5aReLW5v1y5tgcUL021F+mPiTeqAGJ3h2RiQ6ncTw0Rr2r73++A5mDcsomXu0B9Mx8obGWpu9bbIcZ+R4p0lJtECFoD/9Qo/ZjsPOSr4XKDCtIHyJwLUzWUlUvyv+sZfHS6H6gBbf5Ip4BtrbBsHKLkUEK4Oocg1SEuXbNGnPr2OU065dIIHOsVu9gs96IASb6TGTV1+HPsTG/cv+EWIBh767JI7+Na4i/nQDDyNgoECoP5Lkef7Uf3zumFZ490Hejiu4UQsyZgu3uAqg24zqooZSjDEFeSjZkfqUSTS/g40CVvgsCowqi9tfZG2LjLhBbmQHetoUJpptpszfRbWF4OeKgUu/o8WNQuvaORTmgU6P3sPCaS55u8plcui4hyiZx6w3wK8+lDw4UNTJtiqWvOTibOzi9p2u9fUuagaPuMZ4JFDm8+7c0CAb9VgB+u4QjRcJJ+50AkwNeVwc0ayfX5fuH1tmAyyP92QFVpL+Lrx4JFH0STJdPx7sXAEvxNeQlHsiDCdnNzNNg147MCcx2HerhO0QmoUgp16G5jx90tF57BjSS9yb5SZEEFQAv4FszTGkr9jFsPAr3Sj0vflHqieBoNqsoar7ka9XPY/nbO1JHDqsIBR7TIAo26PS6YrKbH58+e4fbrwEjaCVlX4mw/w="
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libaio1 libaio-dev
