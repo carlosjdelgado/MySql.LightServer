@@ -1,4 +1,6 @@
-# MySql.LightServer
+[![Build Status](https://travis-ci.org/carlosjdelgado/MySql.LightServer.svg?branch=master)](https://travis-ci.org/carlosjdelgado/MySql.LightServer)
+[![Build status](https://ci.appveyor.com/api/projects/status/9vbaofala03rch1m/branch/master?svg=true)](https://ci.appveyor.com/project/carlosjdelgado/mysql-lightserver/branch/master)
+# MySql.LightServer 
 A Light Server for C# tests, running on net core.
 
 ## Use
