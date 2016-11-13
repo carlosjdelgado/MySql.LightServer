@@ -25,13 +25,15 @@
   "version": "1.0.0-*",
   "title": "MySql.LightServer",
   "authors": [
-    "Carlos Jiménez Delgado <mail@carlosjdelgado.com>"
+    "Carlos Jimenez Delgado <mail@carlosjdelgado.com>"
   ],
-  "description": "MySql light server for C# tests.",
+  "description": "MySql light server for C# tests",
   "packOptions": {
+    "projectUrl": "https://github.com/carlosjdelgado/MySql.LightServer",
     "iconUrl": "https://raw.githubusercontent.com/carlosjdelgado/MySql.LightServer/master/icon.png",
     "repository": {
-      "url": "https://github.com/carlosjdelgado/MySql.LightServer"
+      "url": "https://github.com/carlosjdelgado/MySql.LightServer",
+      "type": "git"
     },
     "licenseUrl": "https://www.gnu.org/licenses/gpl.html",
     "tags": [
