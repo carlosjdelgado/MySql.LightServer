@@ -3,6 +3,9 @@ dist: trusty
 sudo: required
 mono: none
 dotnet: 1.0.0-preview2-003121
+env:
+  global:
+    - secure: "E6WaJoGJO0N4YgQmIXh5aReLW5v1y5tgcUL021F+mPiTeqAGJ3h2RiQ6ncTw0Rr2r73++A5mDcsomXu0B9Mx8obGWpu9bbIcZ+R4p0lJtECFoD/9Qo/ZjsPOSr4XKDCtIHyJwLUzWUlUvyv+sZfHS6H6gBbf5Ip4BtrbBsHKLkUEK4Oocg1SEuXbNGnPr2OU065dIIHOsVu9gs96IASb6TGTV1+HPsTG/cv+EWIBh767JI7+Na4i/nQDDyNgoECoP5Lkef7Uf3zumFZ490Hejiu4UQsyZgu3uAqg24zqooZSjDEFeSjZkfqUSTS/g40CVvgsCowqi9tfZG2LjLhBbmQHetoUJpptpszfRbWF4OeKgUu/o8WNQuvaORTmgU6P3sPCaS55u8plcui4hyiZx6w3wK8+lDw4UNTJtiqWvOTibOzi9p2u9fUuagaPuMZ4JFDm8+7c0CAb9VgB+u4QjRcJJ+50AkwNeVwc0ayfX5fuH1tmAyyP92QFVpL+Lrx4JFH0STJdPx7sXAEvxNeQlHsiDCdnNzNNg147MCcx2HerhO0QmoUgp16G5jx90tF57BjSS9yb5SZEEFQAv4FszTGkr9jFsPAr3Sj0vflHqieBoNqsoar7ka9XPY/nbO1JHDqsIBR7TIAo26PS6YrKbH58+e4fbrwEjaCVlX4mw/w="
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libaio1 libaio-dev
@@ -10,4 +13,4 @@ script:
   - dotnet restore && dotnet build **/project.json
   - dotnet test ./src/MySql.LightServer.Tests
 after_success:
-  secure: "hhl63Dbv+qqlFChXAc/16yz68hIUKMwwe84IOKK9gBSlsStVI8pk1rREodvueDkNBGRKYl9RmvsJ6f4rbpxpkfGfQsW5vOqDCUVZA7es2zf9DfnbC6jKUjhnwiaicfOVatLcY9Bqd+W61IU5fZItLaxwk5D0PaFM18/LYf8MPGWskNuDPYEblA14bZtjunMm8tbyoMH0LA38L656fwiT7wfvUxGoG6z/uSFZ6UeRz9PlBh3ZxmQ50R/KPKXeBNJi9bY5hzH9RYQdXBnr2pwcdCxOEgS48onGLGvdEUitprItTQXLt0yk5i9xjw7qpAYL0bYQFoGh+LQpqSscDJDzTDTen9CA+HYFJOAPilhSkUv8c7eORAPSLVBZvYJqoEKb2kV2dpDBwYBf5yXxJOv8a3GqPQ9GknMnFULatUQqBBt7AcCCMUIXio9S82R0zfv847BFg3A3SBZOCLV0ciWPdsIFal1VxHBcmcjHvQgih7qLa+ZqSDXLBC+t45+5hJMuUTy7NEUyxYqZFX4FbxE7dUdop95CnZp/VsccLm15BfQZ5X54QfSMcPGYuKGFkWZh0exhA/GF67RULaZxyasBRv1ROyVIRevqJTFUDZYq2RZtHth7FqLD3SN9XgrEimGIHxUFQacI025D92Kml7zsCeD5Gd47X3D8tjoH75+8WVg="
+  - curl -H "Content-Type: application/json" -H "Authorization: Bearer $APPVEYOR_AUTH_KEY" -X POST -d '{"accountName":"carlosjdelgado","projectSlug":"mysql-lightserver","branch":"master"}' https://ci.appveyor.com/api/builds
