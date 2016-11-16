@@ -13,14 +13,13 @@ namespace MySql.LightServer
     /// </summary>
     public class MySqlLightServer
     {
-        private FileSystemService _fileSystemService;
-        private IServer _server;
+        private readonly IServer _server;
+        private readonly FileSystemService _fileSystemService;
 
-        private ServerInfo _serverInfo;
+        private readonly ServerInfo _serverInfo;
         private static MySqlLightServer _instance;
 
         private const int DefaultServerPort = 3306;
-        private const string RunningInstancesFile = "running_instances";
 
         public int ServerPort => _serverInfo.Port;
         //public int? ProcessId => GetProcessId();
