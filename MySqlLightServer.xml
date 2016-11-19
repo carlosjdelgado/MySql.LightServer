@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<documentation>
+  <members name="MySqlLightServer">
+    <summary>
+      A class controlling test database initializing and cleanup
+    </summary>
+  </members>
+</documentation>

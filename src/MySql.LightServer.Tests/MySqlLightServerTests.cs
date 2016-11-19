@@ -1,7 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Diagnostics;
 using NUnit.Framework;
-using System;
 
 namespace MySql.LightServer.Tests
 {

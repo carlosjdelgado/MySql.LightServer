@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using MySql.LightServer.Models;
 using System.Reflection;
 using System.IO.Compression;
-using MySql.LightServer.Services;
 using System.IO;
 using MySql.Data.MySqlClient;
-using MySql.LightServer.Mappers;
 
 namespace MySql.LightServer.Server
 {
     internal class LinuxServer : IServer
     {
-        private readonly FileSystemService _fileSystemService;
         private Process _process;
         private ServerProperties _properties;
 
@@ -29,7 +24,6 @@ namespace MySql.LightServer.Server
 
         public LinuxServer(string rootPath, int port)
         {
-            _fileSystemService = new FileSystemService();
             _properties = BuildProperties(rootPath, port);
         }
 
@@ -56,7 +50,7 @@ namespace MySql.LightServer.Server
             return false;
         }
 
-        public Process Start()
+        public void Start()
         {
             KillPreviousProcesses();
             var arguments = new List<string>()
@@ -73,7 +67,6 @@ namespace MySql.LightServer.Server
             _process = StartProcess(_properties.ExecutablePath, arguments);
             WaitForStartup();
             WriteRunningInstancesFile();
-            return _process;
         }
 
         private ServerProperties BuildProperties(string rootPath, int port)
@@ -124,7 +117,7 @@ namespace MySql.LightServer.Server
                 process.WaitForExit();
             }
 
-            _fileSystemService.RemoveFiles(_properties.RunningInstancesFilePath);
+            File.Delete(_properties.RunningInstancesFilePath);
         }
 
         private void WaitForStartup()
@@ -231,6 +224,11 @@ namespace MySql.LightServer.Server
                 }
                 Directory.Delete(path, true);
             }
+        }
+
+        public int GetPort()
+        {
+            return _properties.Port;
         }
     }
 }

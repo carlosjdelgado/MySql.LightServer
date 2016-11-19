@@ -1,26 +1,34 @@
-﻿using MySql.LightServer.Services;
-using MySql.LightServer.Mappers;
-using MySql.LightServer.Models;
-using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using MySql.LightServer.Server;
 
 namespace MySql.LightServer
 {
     /// <summary>
-    /// A singleton class controlling test database initializing and cleanup
+    /// A class controlling test database initializing and cleanup
     /// </summary>
     public class MySqlLightServer
     {
         private readonly IServer _server;
-        private readonly FileSystemService _fileSystemService;
+
         private const int DefaultPort = 3306;
 
-        //public int ServerPort => _serverInfo.Port;
-        //public int? ProcessId => GetProcessId();
+        /// <summary>
+        /// Port of the server
+        /// </summary>
+        public int ServerPort => _server.GetPort();
+        /// <summary>
+        /// Connection String useful for connect to the server if is running
+        /// </summary>
         public string ConnectionString => _server.GetConnectionString();
-        //public static MySqlLightServer Instance => GetInstance();
+        /// <summary>
+        /// You can check if server is running with this property
+        /// </summary>
+        public bool Running => _server.IsRunning();
+
+        public MySqlLightServer(int port = DefaultPort, string rootPath = null)
+        {
+            _server = ServerFactory.GetServer(port, rootPath ?? GetDefaultRootPath());
+        }
 
         /// <summary>
         /// Starts the server and creates all files and folders necessary
@@ -44,15 +52,9 @@ namespace MySql.LightServer
             _server.Clear();
         }
 
-        public MySqlLightServer(int port = DefaultPort, string rootPath = null)
-        {
-            _fileSystemService = new FileSystemService();
-            _server = ServerFactory.GetServer(port, rootPath ?? GetDefaultRootPath());
-        }
-
         private string GetDefaultRootPath()
         {
-            return _fileSystemService.GetBaseDirectory();
+            return Path.Combine(Path.GetTempPath(), "MySqlLightServer");
         }
 
         ~MySqlLightServer()
