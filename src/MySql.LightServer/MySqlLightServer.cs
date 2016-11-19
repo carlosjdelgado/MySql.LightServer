@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using MySql.LightServer.Server;
 
 namespace MySql.LightServer
 {
@@ -8,7 +7,7 @@ namespace MySql.LightServer
     /// </summary>
     public class MySqlLightServer
     {
-        private readonly IServer _server;
+        private readonly Server.Server _server;
 
         private const int DefaultPort = 3306;
 

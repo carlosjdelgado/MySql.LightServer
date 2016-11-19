@@ -2,55 +2,20 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using MySql.LightServer.Models;
-using System.Reflection;
-using System.IO.Compression;
 using System.IO;
-using MySql.Data.MySqlClient;
 
 namespace MySql.LightServer.Server
 {
-    internal class LinuxServer : IServer
+    internal class LinuxServer : Server
     {
-        private Process _process;
-        private ServerProperties _properties;
-
-        private const string RunningInstancesFile = "running_instances";
-        private const string MysqldPidFile = "mysql-light-server.pid";
-        private const string MysqldSocketFile = "mysql-light-server.sock";
-        private const string ErrorLogFile = "error.log";
-
-        private const string LightServerAssemblyName = "MySql.LightServer";
-        private const string ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
+        protected override string ServerFilesResourceName => "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
 
         public LinuxServer(string rootPath, int port)
         {
             _properties = BuildProperties(rootPath, port);
         }
 
-        public void Extract()
-        {
-            if (!ServerIsDeployed())
-            {
-                var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
-
-                var serverFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(ServerFilesResourceName));
-                Directory.CreateDirectory(_properties.InstancePath);
-                serverFilesCompressed.ExtractToDirectory(_properties.InstancePath);
-                Console.WriteLine($"Instance {_properties.Guid} created");
-            }
-        }
-
-        private bool ServerIsDeployed()
-        {
-            if (Directory.Exists(_properties.BinaryPath))
-            {
-                return (Directory.GetFiles(_properties.ExecutablePath).Length > 0);
-            }
-
-            return false;
-        }
-
-        public void Start()
+        public override void Start()
         {
             KillPreviousProcesses();
             var arguments = new List<string>()
@@ -67,6 +32,49 @@ namespace MySql.LightServer.Server
             _process = StartProcess(_properties.ExecutablePath, arguments);
             WaitForStartup();
             WriteRunningInstancesFile();
+        }
+
+        public override void ShutDown()
+        {
+            if (this.IsRunning())
+            {
+                if (!File.Exists(_properties.RunningInstancesFilePath))
+                {
+                    return;
+                }
+
+                var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
+                foreach (var runningInstanceId in runningInstancesIds)
+                {
+                    var process = Process.GetProcessById(int.Parse(runningInstanceId));
+                    if (process != null && !process.HasExited)
+                    {
+                        process.Kill();
+                        process.WaitForExit();
+                        process = null;
+                    }
+                }
+                File.Delete(_properties.RunningInstancesFilePath);
+            }
+        }
+
+        public override bool IsRunning()
+        {
+            if (!File.Exists(_properties.RunningInstancesFilePath))
+            {
+                return false;
+            }
+
+            var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
+            foreach (var runningInstanceId in runningInstancesIds)
+            {
+                var process = Process.GetProcessById(int.Parse(runningInstanceId));
+                if (process == null || process.HasExited)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private ServerProperties BuildProperties(string rootPath, int port)
@@ -102,133 +110,6 @@ namespace MySql.LightServer.Server
             }
 
             File.WriteAllLines(_properties.RunningInstancesFilePath, processIds);
-        }
-
-        private void KillPreviousProcesses()
-        {
-            if (!File.Exists(_properties.RunningInstancesFilePath))
-                return;
-
-            var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
-            foreach (var runningInstanceId in runningInstancesIds)
-            {
-                var process = Process.GetProcessById(int.Parse(runningInstanceId));
-                process.Kill();
-                process.WaitForExit();
-            }
-
-            File.Delete(_properties.RunningInstancesFilePath);
-        }
-
-        private void WaitForStartup()
-        {
-            var totalTimeToWait = TimeSpan.FromSeconds(30);
-            var startup = DateTime.Now;
-
-            var testConnection = new MySqlConnection(_properties.ConnectionString);
-            while (totalTimeToWait > (DateTime.Now - startup))
-            {
-                try
-                {
-                    testConnection.Open();
-                    Console.WriteLine("Database connection established after " + (DateTime.Now - startup));
-                    testConnection.ClearAllPoolsAsync();
-                    testConnection.Close();
-                    testConnection.Dispose();
-                    return;
-                }
-                catch { }
-            }
-            throw new Exception("Server could not be started.");
-        }
-
-        private Process StartProcess(string executablePath, List<string> arguments)
-        {
-            var process = new Process();
-            process.StartInfo.FileName = Path.Combine(executablePath);
-            process.StartInfo.Arguments = string.Join(" ", arguments);
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = false;
-            process.Start();
-            return process;
-        }
-
-        public void ShutDown()
-        {
-            if (this.IsRunning())
-            {
-                if (!File.Exists(_properties.RunningInstancesFilePath))
-                {
-                    return;
-                }
-
-                var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
-                foreach (var runningInstanceId in runningInstancesIds)
-                {
-                    var process = Process.GetProcessById(int.Parse(runningInstanceId));
-                    if (process != null && !process.HasExited)
-                    {
-                        process.Kill();
-                        process.WaitForExit();
-                        process = null;
-                    }
-                }
-                File.Delete(_properties.RunningInstancesFilePath);
-            }
-        }
-
-        public bool IsRunning()
-        {
-            if (!File.Exists(_properties.RunningInstancesFilePath))
-            {
-                return false;
-            }
-
-            var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
-            foreach (var runningInstanceId in runningInstancesIds)
-            {
-                var process = Process.GetProcessById(int.Parse(runningInstanceId));
-                if (process == null || process.HasExited)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public string GetConnectionString()
-        {
-            return _properties.ConnectionString;
-        }
-
-        public void Clear()
-        {
-            if (!this.IsRunning())
-            {
-                DeleteDirectoryAndFiles(_properties.InstancePath);
-            }
-        }
-
-        private void DeleteDirectoryAndFiles(string path)
-        {
-            if (Directory.Exists(path))
-            {
-                foreach (string file in Directory.GetFiles(path))
-                {
-                    File.Delete(file);
-                }
-                foreach (string directory in Directory.GetDirectories(path))
-                {
-                    DeleteDirectoryAndFiles(directory);
-                }
-                Directory.Delete(path, true);
-            }
-        }
-
-        public int GetPort()
-        {
-            return _properties.Port;
         }
     }
 }

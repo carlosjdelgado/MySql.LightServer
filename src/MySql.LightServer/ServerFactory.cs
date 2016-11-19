@@ -7,7 +7,7 @@ namespace MySql.LightServer
 {
     internal static class ServerFactory
     {
-        public static IServer GetServer(int port, string rootPath)
+        public static Server.Server GetServer(int port, string rootPath)
         {
             var platform = GetOsPlatform();
             switch (platform)
