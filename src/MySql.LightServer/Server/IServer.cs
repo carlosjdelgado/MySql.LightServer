@@ -9,9 +9,11 @@ namespace MySql.LightServer.Server
 {
     internal interface IServer
     {
-        void Extract(string serverDirectory);
-        Process Start(ServerInfo serverInfo);
+        void Extract();
+        Process Start();
         void ShutDown();
         bool IsRunning();
+        void Clear();
+        string GetConnectionString();
     }
 }

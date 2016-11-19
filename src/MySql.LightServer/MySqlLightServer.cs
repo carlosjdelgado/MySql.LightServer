@@ -15,16 +15,12 @@ namespace MySql.LightServer
     {
         private readonly IServer _server;
         private readonly FileSystemService _fileSystemService;
+        private const int DefaultPort = 3306;
 
-        private readonly ServerInfo _serverInfo;
-        private static MySqlLightServer _instance;
-
-        private const int DefaultServerPort = 3306;
-
-        public int ServerPort => _serverInfo.Port;
+        //public int ServerPort => _serverInfo.Port;
         //public int? ProcessId => GetProcessId();
-        public string ConnectionString => _serverInfo.ConnectionString;
-        public static MySqlLightServer Instance => GetInstance();
+        public string ConnectionString => _server.GetConnectionString();
+        //public static MySqlLightServer Instance => GetInstance();
 
         /// <summary>
         /// Starts the server and creates all files and folders necessary
@@ -35,20 +31,8 @@ namespace MySql.LightServer
             {
                 return;
             }
-
-            _fileSystemService.CreateDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo));
-            _server.Extract(Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString()));
-            _server.Start(_serverInfo);
-        }
-
-        /// <summary>
-        /// Start the server on a specified port number
-        /// </summary>
-        /// <param name="serverPort">The port on which the server should listen</param>
-        public void StartServer(int serverPort)
-        {
-            _serverInfo.Port = serverPort;
-            StartServer();
+            _server.Extract();
+            _server.Start();
         }
 
         /// <summary>
@@ -57,49 +41,23 @@ namespace MySql.LightServer
         public void ShutDown()
         {
             _server.ShutDown();
-            _fileSystemService.RemoveDirectories(ServerInfoMapper.ToDirectoryList(_serverInfo), 10);
-            _fileSystemService.RemoveFiles(_serverInfo.RunningInstancesFilePath);
+            _server.Clear();
         }
 
-        private MySqlLightServer()
+        public MySqlLightServer(int port = DefaultPort, string rootPath = null)
         {
             _fileSystemService = new FileSystemService();
-
-            _serverInfo = new ServerInfo
-            {
-                ServerGuid = Guid.NewGuid(),
-                Port = DefaultServerPort,
-                ServerDirectory = Path.Combine(_fileSystemService.GetBaseDirectory()),
-                //RunningInstancesFilePath = Path.Combine(_fileSystemService.GetBaseDirectory(), RunningInstancesFile),
-            };
-
-            _server = ServerFactory.GetServer(_serverInfo);
+            _server = ServerFactory.GetServer(port, rootPath ?? GetDefaultRootPath());
         }
 
-        private static MySqlLightServer GetInstance()
+        private string GetDefaultRootPath()
         {
-            if (_instance == null)
-            {
-                _instance = new MySqlLightServer();
-            }
-
-            return _instance;
+            return _fileSystemService.GetBaseDirectory();
         }
 
         ~MySqlLightServer()
         {
-            //if (_process != null)
-            //{
-            //    _process.Kill();
-            //    _process.Dispose();
-            //    _process = null;
-            //}
-
-            if (_instance != null)
-            {
-                _instance.ShutDown();
-                _instance = null;
-            }
+            ShutDown();
         }
     }
 }

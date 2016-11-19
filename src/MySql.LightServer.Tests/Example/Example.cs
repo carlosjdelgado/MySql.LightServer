@@ -17,7 +17,7 @@ namespace Example
         {
             //Setting up and starting the server
             //This can also be done in a AssemblyInitialize method to speed up tests
-            var dbServer = MySqlLightServer.Instance;
+            var dbServer = new MySqlLightServer();
             dbServer.StartServer();
 
             //Create a database and select it

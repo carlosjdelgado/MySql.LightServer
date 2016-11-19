@@ -17,58 +17,83 @@ namespace MySql.LightServer.Server
     {
         private readonly FileSystemService _fileSystemService;
         private Process _process;
-        private ServerInfo _serverInfo;
+        private ServerProperties _properties;
 
         private const string RunningInstancesFile = "running_instances";
         private const string MysqldPidFile = "mysql-light-server.pid";
+        private const string MysqldSocketFile = "mysql-light-server.sock";
+        private const string ErrorLogFile = "error.log";
+
         private const string LightServerAssemblyName = "MySql.LightServer";
         private const string ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
 
-        public LinuxServer(ServerInfo serverInfo)
+        public LinuxServer(string rootPath, int port)
         {
-            _serverInfo = serverInfo;
             _fileSystemService = new FileSystemService();
+            _properties = BuildProperties(rootPath, port);
         }
 
-        public void Extract(string serverDirectory)
+        public void Extract()
         {
-            if (!ServerIsDeployed(serverDirectory))
+            if (!ServerIsDeployed())
             {
                 var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
                 var serverFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(ServerFilesResourceName));
-                serverFilesCompressed.ExtractToDirectory(serverDirectory);
+                Directory.CreateDirectory(_properties.InstancePath);
+                serverFilesCompressed.ExtractToDirectory(_properties.InstancePath);
+                Console.WriteLine($"Instance {_properties.Guid} created");
             }
         }
 
-        private bool ServerIsDeployed(string serverDirectory)
+        private bool ServerIsDeployed()
         {
-            if (Directory.Exists(Path.Combine(serverDirectory, "bin")))
+            if (Directory.Exists(_properties.BinaryPath))
             {
-                return (Directory.GetFiles(Path.Combine(serverDirectory, "bin"), "mysqld_safe").Length > 0);
+                return (Directory.GetFiles(_properties.ExecutablePath).Length > 0);
             }
 
             return false;
         }
 
-        public Process Start(ServerInfo serverInfo)
+        public Process Start()
         {
-            KillPreviousProcesses(_serverInfo);
+            KillPreviousProcesses();
             var arguments = new List<string>()
             {
-                $"--port={_serverInfo.Port}",
-                $"--ledir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "bin")}\"",
-                $"--lc-messages-dir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "share")}\"",
-                $"--socket=\"{Path.Combine(_serverInfo.ServerDirectory, "mysql-light-server.sock")}\"",
-                $"--basedir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString())}\"",
-                $"--datadir=\"{Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "data")}\"",
-                $"--pid-file=\"{Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile)}\"",
-                $"--log-error=\"{Path.Combine(_serverInfo.ServerDirectory, "error.log")}\""
+                $"--port={_properties.Port}",
+                $"--ledir=\"{_properties.BinaryPath}\"",
+                $"--lc-messages-dir=\"{_properties.SharePath}\"",
+                $"--socket=\"{_properties.SocketFilePath}\"",
+                $"--basedir=\"{_properties.InstancePath}\"",
+                $"--datadir=\"{_properties.DataPath}\"",
+                $"--pid-file=\"{_properties.PidFilePath}\"",
+                $"--log-error=\"{_properties.ErrorLogFilePath}\""
             };
-            _process = StartProcess(Path.Combine(_serverInfo.ServerDirectory, _serverInfo.ServerGuid.ToString(), "bin", "mysqld_safe"), arguments);
-            WaitForStartup(_serverInfo);
+            _process = StartProcess(_properties.ExecutablePath, arguments);
+            WaitForStartup();
             WriteRunningInstancesFile();
             return _process;
+        }
+
+        private ServerProperties BuildProperties(string rootPath, int port)
+        {
+            var serverGuid = Guid.NewGuid();
+            return new ServerProperties
+            {
+                Port = port,
+                RootPath = rootPath,
+                Guid = serverGuid,
+                InstancePath = Path.Combine(rootPath, serverGuid.ToString()),
+                BinaryPath = Path.Combine(rootPath, serverGuid.ToString(), "bin"),
+                DataPath = Path.Combine(rootPath, serverGuid.ToString(), "data"),
+                SharePath = Path.Combine(rootPath, serverGuid.ToString(), "share"),
+                ExecutablePath = Path.Combine(rootPath, serverGuid.ToString(), "bin", "mysqld_safe"),
+                RunningInstancesFilePath = Path.Combine(rootPath, RunningInstancesFile),
+                PidFilePath = Path.Combine(rootPath, MysqldPidFile),
+                SocketFilePath = Path.Combine(rootPath, MysqldSocketFile),
+                ErrorLogFilePath = Path.Combine(rootPath, ErrorLogFile)
+            };
         }
 
         private void WriteRunningInstancesFile()
@@ -78,36 +103,36 @@ namespace MySql.LightServer.Server
                 _process.Id.ToString(),
             };
 
-            using (var fs = File.OpenText(Path.Combine(_serverInfo.ServerDirectory, MysqldPidFile)))
+            using (var fs = File.OpenText(_properties.PidFilePath))
             {
                 processIds.Add(fs.ReadLine());
             }
 
-            File.WriteAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile), processIds);
+            File.WriteAllLines(_properties.RunningInstancesFilePath, processIds);
         }
 
-        private void KillPreviousProcesses(ServerInfo serverInfo)
+        private void KillPreviousProcesses()
         {
-            if (!File.Exists(Path.Combine(serverInfo.ServerDirectory, RunningInstancesFile)))
+            if (!File.Exists(_properties.RunningInstancesFilePath))
                 return;
 
-            var runningInstancesIds = File.ReadAllLines(Path.Combine(serverInfo.ServerDirectory, RunningInstancesFile));
+            var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
             foreach (var runningInstanceId in runningInstancesIds)
             {
                 var process = Process.GetProcessById(int.Parse(runningInstanceId));
                 process.Kill();
+                process.WaitForExit();
             }
 
-            _fileSystemService.RemoveDirectories(ServerInfoMapper.ToDirectoryList(serverInfo), 10);
-            _fileSystemService.RemoveFiles(serverInfo.RunningInstancesFilePath);
+            _fileSystemService.RemoveFiles(_properties.RunningInstancesFilePath);
         }
 
-        private void WaitForStartup(ServerInfo serverInfo)
+        private void WaitForStartup()
         {
-            var totalTimeToWait = TimeSpan.FromSeconds(10);
+            var totalTimeToWait = TimeSpan.FromSeconds(30);
             var startup = DateTime.Now;
 
-            var testConnection = new MySqlConnection(serverInfo.ConnectionString);
+            var testConnection = new MySqlConnection(_properties.ConnectionString);
             while (totalTimeToWait > (DateTime.Now - startup))
             {
                 try
@@ -140,12 +165,12 @@ namespace MySql.LightServer.Server
         {
             if (this.IsRunning())
             {
-                if (!File.Exists(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile)))
+                if (!File.Exists(_properties.RunningInstancesFilePath))
                 {
                     return;
                 }
 
-                var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile));
+                var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
                 foreach (var runningInstanceId in runningInstancesIds)
                 {
                     var process = Process.GetProcessById(int.Parse(runningInstanceId));
@@ -156,17 +181,18 @@ namespace MySql.LightServer.Server
                         process = null;
                     }
                 }
+                File.Delete(_properties.RunningInstancesFilePath);
             }
         }
 
         public bool IsRunning()
         {
-            if (!File.Exists(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile)))
+            if (!File.Exists(_properties.RunningInstancesFilePath))
             {
                 return false;
             }
 
-            var runningInstancesIds = File.ReadAllLines(Path.Combine(_serverInfo.ServerDirectory, RunningInstancesFile));
+            var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
             foreach (var runningInstanceId in runningInstancesIds)
             {
                 var process = Process.GetProcessById(int.Parse(runningInstanceId));
@@ -176,6 +202,35 @@ namespace MySql.LightServer.Server
                 }
             }
             return true;
+        }
+
+        public string GetConnectionString()
+        {
+            return _properties.ConnectionString;
+        }
+
+        public void Clear()
+        {
+            if (!this.IsRunning())
+            {
+                DeleteDirectoryAndFiles(_properties.InstancePath);
+            }
+        }
+
+        private void DeleteDirectoryAndFiles(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                foreach (string file in Directory.GetFiles(path))
+                {
+                    File.Delete(file);
+                }
+                foreach (string directory in Directory.GetDirectories(path))
+                {
+                    DeleteDirectoryAndFiles(directory);
+                }
+                Directory.Delete(path, true);
+            }
         }
     }
 }

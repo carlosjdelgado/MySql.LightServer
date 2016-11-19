@@ -11,15 +11,15 @@ namespace MySql.LightServer
 {
     internal static class ServerFactory
     {
-        public static IServer GetServer(ServerInfo serverInfo)
+        public static IServer GetServer(int port, string rootPath)
         {
             var platform = GetOsPlatform();
             switch (platform)
             {
                 case OperatingSystem.Windows:
-                    return new WindowsServer(serverInfo);
+                    return new WindowsServer(rootPath, port);
                 case OperatingSystem.Linux:
-                    return new LinuxServer(serverInfo);
+                    return new LinuxServer(rootPath, port);
             }
 
             throw new Exception("Current operating system is not supported");

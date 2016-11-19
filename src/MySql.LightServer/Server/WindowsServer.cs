@@ -17,74 +17,115 @@ namespace MySql.LightServer.Server
     {
         private readonly FileSystemService _fileSystemService;
         private Process _process;
+        private ServerProperties _properties;
 
         private const string RunningInstancesFile = "running_instances";
         private const string LightServerAssemblyName = "MySql.LightServer";
         private const string ServerFilesResourceName = "MySql.LightServer.ServerFiles.mysql-lightserver-win32.zip";
 
-        public WindowsServer(ServerInfo serverInfo)
+        public WindowsServer(string rootPath, int port)
         {
             _fileSystemService = new FileSystemService();
+            _properties = BuildProperties(rootPath, port);
         }
 
-        public void Extract(string serverDirectory)
+        public void Extract()
         {
-            if (!ServerIsDeployed(serverDirectory))
+            if (!ServerIsDeployed())
             {
                 var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
 
                 var serverFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(ServerFilesResourceName));
-                serverFilesCompressed.ExtractToDirectory(serverDirectory);
+                Directory.CreateDirectory(_properties.InstancePath);
+                serverFilesCompressed.ExtractToDirectory(_properties.InstancePath);
             }
         }
 
-        public Process Start(ServerInfo serverInfo)
+        public Process Start()
         {
-            KillPreviousProcesses(serverInfo);
+            KillPreviousProcesses();
             var arguments = new List<string>()
             {
                 $"--console",
                 $"--standalone",
                 $"--explicit_defaults_for_timestamp=1",
                 $"--enable-named-pipe",
-                $"--basedir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString())}\"",
-                $"--lc-messages-dir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "share")}\"",
-                $"--datadir=\"{Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "data")}\"",
+                $"--basedir=\"{_properties.InstancePath}\"",
+                $"--lc-messages-dir=\"{_properties.SharePath}\"",
+                $"--datadir=\"{_properties.DataPath}\"",
                 $"--skip-grant-tables",
-                $"--port={serverInfo.Port}",
+                $"--port={_properties.Port}",
                 $"--innodb_fast_shutdown=2",
                 $"--innodb_doublewrite=OFF",
                 $"--innodb_log_file_size=4M",
                 $"--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
-            _process = StartProcess(Path.Combine(serverInfo.ServerDirectory, serverInfo.ServerGuid.ToString(), "bin", "mysqld.exe"), arguments);
-            WaitForStartup(serverInfo);
-            File.WriteAllText(Path.Combine(serverInfo.ServerDirectory, RunningInstancesFile), _process.Id.ToString());
+            _process = StartProcess(_properties.ExecutablePath, arguments);
+            WaitForStartup();
+            File.WriteAllText(_properties.RunningInstancesFilePath, _process.Id.ToString());
             return _process;
         }
 
-        private void KillPreviousProcesses(ServerInfo serverInfo)
+        public void ShutDown()
         {
-            if (!File.Exists(serverInfo.RunningInstancesFilePath))
+            if (this.IsRunning())
+            {
+                _process.Kill();
+                _process.WaitForExit();
+                _process = null;
+                File.Delete(_properties.RunningInstancesFilePath);
+            }
+        }
+
+        public bool IsRunning()
+        {
+            return (_process != null);
+        }
+
+        public string GetConnectionString()
+        {
+            return _properties.ConnectionString;
+        }
+
+        private ServerProperties BuildProperties(string rootPath, int port)
+        {
+            var serverGuid = Guid.NewGuid();
+            return new ServerProperties
+            {
+                Port = port,
+                RootPath = rootPath,
+                Guid = serverGuid,
+                InstancePath = Path.Combine(rootPath, serverGuid.ToString()),
+                BinaryPath = Path.Combine(rootPath, serverGuid.ToString(), "bin"),
+                DataPath = Path.Combine(rootPath, serverGuid.ToString(), "data"),
+                SharePath = Path.Combine(rootPath, serverGuid.ToString(), "share"),
+                ExecutablePath = Path.Combine(rootPath, serverGuid.ToString(), "bin", "mysqld.exe"),
+                RunningInstancesFilePath = Path.Combine(rootPath, "running_instances")
+            };
+        }
+
+        private void KillPreviousProcesses()
+        {
+            if (!File.Exists(_properties.RunningInstancesFilePath))
                 return;
 
-            var runningInstancesIds = File.ReadAllLines(Path.Combine(serverInfo.ServerDirectory, RunningInstancesFile));
+            var runningInstancesIds = File.ReadAllLines(_properties.RunningInstancesFilePath);
             foreach (var runningInstanceId in runningInstancesIds)
             {
                 var process = Process.GetProcessById(int.Parse(runningInstanceId));
                 process.Kill();
+                process.WaitForExit();
             }
 
-            _fileSystemService.RemoveDirectories(ServerInfoMapper.ToDirectoryList(serverInfo), 10);
-            _fileSystemService.RemoveFiles(serverInfo.RunningInstancesFilePath);
+            _fileSystemService.RemoveFiles(_properties.RunningInstancesFilePath);
         }
 
-        private void WaitForStartup(ServerInfo serverInfo)
+        private void WaitForStartup()
         {
             var totalTimeToWait = TimeSpan.FromSeconds(10);
             var startup = DateTime.Now;
 
-            var testConnection = new MySqlConnection(serverInfo.ConnectionString);
+            var testConnection = new MySqlConnection(_properties.ConnectionString);
             while (totalTimeToWait > (DateTime.Now - startup))
             {
                 try
@@ -104,7 +145,7 @@ namespace MySql.LightServer.Server
         private Process StartProcess(string executablePath, List<string> arguments)
         {
             var process = new Process();
-            process.StartInfo.FileName = Path.Combine(executablePath);
+            process.StartInfo.FileName = executablePath;
             process.StartInfo.Arguments = string.Join(" ", arguments);
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
@@ -113,29 +154,38 @@ namespace MySql.LightServer.Server
             return process;
         }
 
-        private bool ServerIsDeployed(string serverDirectory)
+        private bool ServerIsDeployed()
         {
-            if (Directory.Exists(Path.Combine(serverDirectory, "bin")))
+            if (Directory.Exists(_properties.BinaryPath))
             {
-                return (Directory.GetFiles(Path.Combine(serverDirectory, "bin"), "mysqld.exe").Length > 0);
+                return (Directory.GetFiles(_properties.ExecutablePath).Length > 0);
             }
 
             return false;
         }
 
-        public void ShutDown()
+        public void Clear()
         {
-            if (this.IsRunning())
+            if(!this.IsRunning())
             {
-                _process.Kill();
-                _process.WaitForExit();
-                _process = null;
+                DeleteDirectoryAndFiles(_properties.InstancePath);
             }
         }
 
-        public bool IsRunning()
+        private void DeleteDirectoryAndFiles(string path)
         {
-            return (_process != null && !_process.HasExited);
+            if (Directory.Exists(path))
+            {
+                foreach (string file in Directory.GetFiles(path))
+                {
+                    File.Delete(file);
+                }
+                foreach (string directory in Directory.GetDirectories(path))
+                {
+                    DeleteDirectoryAndFiles(directory);
+                }
+                Directory.Delete(path, true);
+            }
         }
     }
 }
