@@ -8,6 +8,28 @@ namespace MySql.LightServer.Tests
     public class MySqlLightServerTests
     {
         [TestCase]
+        public void UsingServer()
+        {
+            var dbServer = new MySqlLightServer();
+            dbServer.StartServer();
+
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, string.Format("CREATE DATABASE {0};USE {0};", "test"));
+
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
+
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "INSERT INTO testTable (`id`,`value`) VALUES (1, 'some value')");
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
+
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(dbServer.ConnectionString, "select * from testTable WHERE id = 2"))
+            {
+                reader.Read();
+                Assert.AreEqual("test value", reader.GetString("value"), "Inserted and read string should match");
+            }
+
+            dbServer.ShutDown();
+        }
+
+        [TestCase]
         public void KillProcess()
         {
             var previousProcessCount = Process.GetProcessesByName("mysqld").Length;
