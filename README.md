@@ -20,7 +20,7 @@ Mysql.LightServer makes it possible to create and run unit tests on a real MySql
 
 ```c#
         //Get an instance
-        MySqlLightServer dbServer = MySqlServer.Instance;
+        MySqlLightServer dbServer = new MySqlLightServer();
         
         //Start the server
         dbServer.StartServer();
@@ -35,14 +35,33 @@ Mysql.LightServer makes it possible to create and run unit tests on a real MySql
         dbServer.ShutDown();
 ```
 ## API
-* **MySqlServer.Instance**: Retrieves an Instance of the server API.
+### Constructor
+You can specify a port and/or a folder where put the server, default port is 3306 and default server folder is the machine temporal folder.
+```c#
+        // Constructor by default (port 3306, temporal folder)
+        MySqlLightServer dbServer = new MySqlLightServer();
+        
+        // Constructor with folder specified
+        MySqlLightServer dbServer = new MySqlLightServer(rootPath: @"C:\MySqlLightServer");
+        
+        //Port specified
+        MySqlLightServer dbServer = new MySqlLightServer(5000);
+        MySqlLightServer dbServer = new MySqlLightServer(port: 5000); 
+        
+        //Port and folder specified
+        MySqlLightServer dbServer = new MySqlLightServer(5000, @"C:\MySqlLightServer");
+        MySqlLightServer dbServer = new MySqlLightServer(port: 5000, rootPath: @"C:\MySqlLightServer"); 
+        
+```
+### Properties
+* **MySqlServer.ServerPort**: Gets the port of the server (read only).
 
+* **MySqlServer.ConnectionString**: Gets the connectionString of the server.
+
+* **MySqlServer.IsRunning**: Gets if server is running.
+
+### Methods
 * **MySqlServer.StartServer()**: Starts the server.
 
-* **MySqlServer.StartServer(int serverPort)**: Starts the server at a specified port. Nice to have if you have a real MySql server running on the test machine.
+* **MySqlServer.ShutDown()**: Shuts down the server and remove all files related to it.
 
-* **MySqlServer.ShutDown()**: Shuts down the server.
-
-* **MySqlServer.GetConnectionString()**: Returns a connection string to be used when connecting to the server.
-
-* **MySqlServer.ServerPort**: Returns the server port of the instance.
