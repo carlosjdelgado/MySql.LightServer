@@ -4,7 +4,7 @@
 A Light Server for C# tests, running on net core.
 
 ## Use
-You cannot use this library until I publish the first version on nuget, I want to do some refactor before, so, be patient.
+You can download and use this via [NuGet](https://www.nuget.org/packages/MySql.LightServer/)
 
 ## Platforms supported
 MySql.LightServe runs with net core, net framework is not yet supported.
