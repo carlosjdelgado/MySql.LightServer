@@ -13,7 +13,7 @@ namespace MySql.LightServer.Tests
             var dbServer = new MySqlLightServer();
             dbServer.StartServer();
 
-            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, string.Format("CREATE DATABASE {0};USE {0};", "test"));
+            MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, string.Format("CREATE DATABASE {0};USE {0};", "testserver"));
 
             MySqlHelper.ExecuteNonQuery(dbServer.ConnectionString, "CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
 
