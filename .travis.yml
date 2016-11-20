@@ -13,5 +13,4 @@ script:
   - dotnet restore && dotnet build **/project.json
   - dotnet test ./src/MySql.LightServer.Tests
 after_success:
-  - curl -H "Content-Type:application/json" -H "Authorization:Bearer $APPVEYOR_AUTH_KEY" -X POST -d '{"accountName":"carlosjdelgado","projectSlug":"mysql-lightserver","branch":"$TRAVIS_BRANCH"}' https://ci.appveyor.com/api/builds
-    
+  - curl -H "Content-Type:application/json" -H "Authorization:Bearer $APPVEYOR_AUTH_KEY" -X POST -d '{"accountName":"carlosjdelgado","projectSlug":"mysql-lightserver","branch":"$TRAVIS_BRANCH"}' https://ci.appveyor.com/api/builds    
