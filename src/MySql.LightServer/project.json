@@ -5,7 +5,10 @@
         "ServerFiles/mysql-lightserver-win32.zip",
         "ServerFiles/mysql-lightserver-linux.zip"
       ]
-    }
+    },
+    "copyToOutput": [
+      "ServerFiles\\"
+    ]
   },
   "frameworks": {
     "net462": {
@@ -69,6 +72,11 @@
   ],
   "description": "MySql light server for C# tests",
   "packOptions": {
+    "files": {
+      "include": [
+        "ServerFiles\\"
+      ]
+    },
     "projectUrl": "https://github.com/carlosjdelgado/MySql.LightServer",
     "iconUrl": "https://raw.githubusercontent.com/carlosjdelgado/MySql.LightServer/master/icon.png",
     "repository": {
