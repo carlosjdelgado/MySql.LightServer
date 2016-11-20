@@ -7,16 +7,56 @@
       ]
     }
   },
-  "dependencies": {
-    "MySql.Data": "7.0.6-IR31",
-    "NETStandard.Library": "1.6.0",
-    "System.IO.Compression": "4.1.0",
-    "System.IO.Compression.ZipFile": "4.0.1",
-    "System.Threading.Thread": "4.0.0"
-  },
   "frameworks": {
+    "net462": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
+    "net461": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
+    "net46": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
+    "net452": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
     "netstandard1.6": {
-      "imports": "dnxcore50"
+      "imports": "dnxcore50",
+      "dependencies": {
+        "MySql.Data": "7.0.6-IR31",
+        "NETStandard.Library": "1.6.0",
+        "System.IO.Compression": "4.1.0",
+        "System.IO.Compression.ZipFile": "4.0.1",
+        "System.Threading.Thread": "4.0.0"
+      }
     }
   },
   "tools": {

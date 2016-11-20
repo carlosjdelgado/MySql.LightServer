@@ -81,7 +81,9 @@ namespace MySql.LightServer.Server
                 {
                     testConnection.Open();
                     Console.WriteLine("Database connection established after " + (DateTime.Now - startup));
+#if NETSTANDARD1_6
                     testConnection.ClearAllPoolsAsync();
+#endif
                     testConnection.Close();
                     testConnection.Dispose();
                     return;
