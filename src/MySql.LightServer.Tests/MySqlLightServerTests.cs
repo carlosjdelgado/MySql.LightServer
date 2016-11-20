@@ -1,6 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Diagnostics;
 using NUnit.Framework;
+using System.IO;
 
 namespace MySql.LightServer.Tests
 {
@@ -27,6 +28,14 @@ namespace MySql.LightServer.Tests
             }
 
             dbServer.ShutDown();
+        }
+
+        [TestCase]
+        public void StartServerOnCustomFolder()
+        {
+            var database = new MySqlLightServer(rootPath: Path.Combine(Path.GetTempPath(), "testServer"));
+            database.StartServer();
+            database.ShutDown();
         }
 
         [TestCase]
