@@ -7,7 +7,7 @@
       ]
     },
     "copyToOutput": [
-      "ServerFiles\\"
+      "ServerFiles/*.zip"
     ]
   },
   "frameworks": {
@@ -65,7 +65,7 @@
   "tools": {
     "dotnet-version": "1.1.0"
   },
-  "version": "1.0.0-*",
+  "version": "2.0.0-*",
   "title": "MySql.LightServer",
   "authors": [
     "Carlos Jimenez Delgado <mail@carlosjdelgado.com>"
@@ -73,9 +73,17 @@
   "description": "MySql light server for C# tests",
   "packOptions": {
     "files": {
-      "include": [
-        "ServerFiles\\"
-      ]
+      "mappings": {
+        "build/MySql.LightServer.targets": {
+          "includeFiles": "./ServerFiles/MySql.LightServer.targets"
+        },
+        "build/mysql-lightserver-linux.zip": {
+          "includeFiles": "./ServerFiles/mysql-lightserver-linux.zip"
+        },
+        "build/mysql-lightserver-win32.zip": {
+          "includeFiles": "./ServerFiles/mysql-lightserver-win32.zip"
+        }
+      }
     },
     "projectUrl": "https://github.com/carlosjdelgado/MySql.LightServer",
     "iconUrl": "https://raw.githubusercontent.com/carlosjdelgado/MySql.LightServer/master/icon.png",
