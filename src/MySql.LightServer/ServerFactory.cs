@@ -3,6 +3,7 @@ using MySql.LightServer.Server;
 using System;
 using System.Runtime.InteropServices;
 
+
 namespace MySql.LightServer
 {
     internal static class ServerFactory
@@ -12,15 +13,16 @@ namespace MySql.LightServer
             var platform = GetOsPlatform();
             switch (platform)
             {
-                case OperatingSystem.Windows:
+                case Enums.OperatingSystem.Windows:
                     return new WindowsServer(rootPath, port);
-                case OperatingSystem.Linux:
+                case Enums.OperatingSystem.Linux:
                     return new LinuxServer(rootPath, port);
             }
 
             throw new Exception("Current operating system is not supported");
         }
 
+#if NETSTANDARD1_6
         private static OperatingSystem? GetOsPlatform()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -35,5 +37,22 @@ namespace MySql.LightServer
 
             return null;
         }
+#endif
+
+#if NET452 || NET46 || NET461 || NET462
+        private static Enums.OperatingSystem? GetOsPlatform()
+        {
+            if(Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                return Enums.OperatingSystem.Linux;
+            }
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                return Enums.OperatingSystem.Windows;
+            }
+
+            return null;
+        }
+#endif
     }
 }

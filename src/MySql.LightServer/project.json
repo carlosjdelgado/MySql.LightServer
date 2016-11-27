@@ -1,22 +1,54 @@
 {
-  "buildOptions": {
-    "embed": {
-      "includeFiles": [
-        "ServerFiles/mysql-lightserver-win32.zip",
-        "ServerFiles/mysql-lightserver-linux.zip"
-      ]
-    }
-  },
-  "dependencies": {
-    "MySql.Data": "7.0.6-IR31",
-    "NETStandard.Library": "1.6.0",
-    "System.IO.Compression": "4.1.0",
-    "System.IO.Compression.ZipFile": "4.0.1",
-    "System.Threading.Thread": "4.0.0"
-  },
   "frameworks": {
+    "net462": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
+    "net461": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
+    "net46": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
+    "net452": {
+      "dependencies": {
+        "MySql.Data": "5.1.7"
+      },
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0",
+        "System.IO.Compression": "4.0.0.0",
+        "System.IO.Compression.FileSystem": "4.0.0.0"
+      }
+    },
     "netstandard1.6": {
-      "imports": "dnxcore50"
+      "imports": "dnxcore50",
+      "dependencies": {
+        "MySql.Data": "7.0.6-IR31",
+        "NETStandard.Library": "1.6.0",
+        "System.IO.Compression": "4.1.0",
+        "System.IO.Compression.ZipFile": "4.0.1",
+        "System.Threading.Thread": "4.0.0"
+      }
     }
   },
   "tools": {
@@ -27,8 +59,22 @@
   "authors": [
     "Carlos Jimenez Delgado <mail@carlosjdelgado.com>"
   ],
-  "description": "MySql light server for C# tests",
+  "description": "MySql light server for tests",
   "packOptions": {
+    "files": {
+      "mappings": {
+        "build/": {
+          "includeFiles": [
+            "./Package/build/MySql.LightServer.targets",
+            "./Package/build/mysql-lightserver-linux.zip",
+            "./Package/build/mysql-lightserver-win32.zip"
+          ]
+        },
+        "lib/netstandard1.6/": {
+          "includeFiles": "./Package/lib/netstandard1.6/contentReferences.json"
+        }
+      }
+    },
     "projectUrl": "https://github.com/carlosjdelgado/MySql.LightServer",
     "iconUrl": "https://raw.githubusercontent.com/carlosjdelgado/MySql.LightServer/master/icon.png",
     "repository": {
@@ -41,5 +87,8 @@
       "test",
       "light"
     ]
+  },
+  "dependencies": {
+    "Newtonsoft.Json": "9.0.1"
   }
 }

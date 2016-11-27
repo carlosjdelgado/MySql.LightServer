@@ -10,8 +10,9 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libaio1 libaio-dev
 script:
-  - dotnet restore && dotnet build **/project.json
-  - dotnet test ./src/MySql.LightServer.Tests
+  - dotnet restore && 
+    dotnet build ./src/MySql.LightServer.Tests/project.json -f netcoreapp1.0
+  - dotnet test  ./src/MySql.LightServer.Tests -f netcoreapp1.0
 after_success:
   - test $TRAVIS_PULL_REQUEST = false &&
     curl -H "Content-Type:application/json" -H "Authorization:Bearer $APPVEYOR_AUTH_KEY" -X POST -d '{"accountName":"carlosjdelgado","projectSlug":"mysql-lightserver","branch":"master"}' https://ci.appveyor.com/api/builds 

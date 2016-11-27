@@ -1,17 +1,52 @@
 {
   "version": "1.0.0-*",
   "testRunner": "nunit",
+  "buildOptions": {
+    "copyToOutput": {
+      "mappings": {
+        "mysql-lightserver-win32.zip": {
+          "includeFiles": "../MySql.LightServer/Package/build/mysql-lightserver-win32.zip"
+        },
+        "mysql-lightserver-linux.zip": {
+          "includeFiles": "../MySql.LightServer/Package/build/mysql-lightserver-linux.zip"
+        }
+      }
+    }
+  },  
   "dependencies": {
-    "dotnet-test-nunit": "3.4.0-beta-2",
-    "MySql.LightServer": "1.0.0-*",
-    "NETStandard.Library": "1.6.0",
-    "NUnit": "3.5.0"
+    "MySql.LightServer": "1.0.0-*"
   },
-
   "frameworks": {
+    "net462": {
+      "dependencies": {
+        "NUnit": "3.5.0",
+        "dotnet-test-nunit": "3.4.0-beta-2"
+      }
+    },
+    "net461": {
+      "dependencies": {
+        "NUnit": "3.5.0",
+        "dotnet-test-nunit": "3.4.0-beta-2"
+      }
+    },
+    "net46": {
+      "dependencies": {
+        "NUnit": "3.5.0",
+        "dotnet-test-nunit": "3.4.0-beta-2"
+      }
+    },
+    "net452": {
+      "dependencies": {
+        "NUnit": "3.5.0",
+        "dotnet-test-nunit": "3.4.0-beta-2"
+      }
+    },
     "netcoreapp1.0": {
       "imports": "portable-net45+win8",
       "dependencies": {
+        "dotnet-test-nunit": "3.4.0-beta-2",
+        "NETStandard.Library": "1.6.0",
+        "NUnit": "3.5.0",
         "Microsoft.NETCore.App": {
           "version": "1.0.0-*",
           "type": "platform"

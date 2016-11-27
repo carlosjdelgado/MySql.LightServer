@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace MySql.LightServer.Server
 {
     internal class WindowsServer : Server
     {
-        protected override string ServerFilesResourceName => "MySql.LightServer.ServerFiles.mysql-lightserver-win32.zip";
+        protected override string ServerFilesResourceName => "mysql-lightserver-win32.zip";
 
         public WindowsServer(string rootPath, int port)
         {
@@ -46,6 +47,7 @@ namespace MySql.LightServer.Server
                 _process.WaitForExit();
                 _process = null;
                 File.Delete(_properties.RunningInstancesFilePath);
+                Thread.Sleep(300);
             }
         }
 

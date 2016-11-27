@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MySql.LightServer.Server
 {
@@ -29,14 +31,32 @@ namespace MySql.LightServer.Server
 
         public virtual void Extract()
         {
-            if (!ServerIsDeployed())
+            using (var fileStream = new FileStream(GetResourcePath(ServerFilesResourceName), FileMode.Open))
             {
-                var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
-
-                var serverFilesCompressed = new ZipArchive(assembly.GetManifestResourceStream(ServerFilesResourceName));
+                var serverFilesCompressed = new ZipArchive(fileStream);
                 Directory.CreateDirectory(_properties.InstancePath);
                 serverFilesCompressed.ExtractToDirectory(_properties.InstancePath);
             }
+        }
+
+        private string GetResourcePath(string serverFilesResourceName)
+        {
+            var assembly = Assembly.Load(new AssemblyName(LightServerAssemblyName));
+            string assemblyPath = Path.GetDirectoryName(assembly.Location);
+            
+            if(File.Exists(Path.Combine(assemblyPath, serverFilesResourceName)))
+            {
+                return Path.Combine(assemblyPath, serverFilesResourceName);
+            }
+
+            if (File.Exists(Path.Combine(assemblyPath, "contentReferences.json")))
+            {
+                var contentReferencesFile = JObject.Parse(File.ReadAllText(Path.Combine(assemblyPath, "contentReferences.json")));
+                var relativePath = contentReferencesFile[serverFilesResourceName].ToString();
+                return Path.Combine(assemblyPath, relativePath);
+            }
+
+            return null;
         }
 
         public virtual void Clear()
@@ -81,7 +101,9 @@ namespace MySql.LightServer.Server
                 {
                     testConnection.Open();
                     Console.WriteLine("Database connection established after " + (DateTime.Now - startup));
+#if NETSTANDARD1_6
                     testConnection.ClearAllPoolsAsync();
+#endif
                     testConnection.Close();
                     testConnection.Dispose();
                     return;
