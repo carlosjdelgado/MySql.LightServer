@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace MySql.LightServer.Server
 {
@@ -46,6 +47,7 @@ namespace MySql.LightServer.Server
                 _process.WaitForExit();
                 _process = null;
                 File.Delete(_properties.RunningInstancesFilePath);
+                Thread.Sleep(300);
             }
         }
 
