@@ -1,14 +1,20 @@
 [![Build Status](https://travis-ci.org/carlosjdelgado/MySql.LightServer.svg?branch=master)](https://travis-ci.org/carlosjdelgado/MySql.LightServer)
 [![Build status](https://ci.appveyor.com/api/projects/status/9vbaofala03rch1m/branch/master?svg=true)](https://ci.appveyor.com/project/carlosjdelgado/mysql-lightserver/branch/master)
 # MySql.LightServer 
-A Light Server for C# tests, running on net core.
+A Light MySql Server for tests.
 
 ## Use
 You can download and use this via [NuGet](https://www.nuget.org/packages/MySql.LightServer/)
 
 ## Platforms supported
-MySql.LightServe runs with net core, net framework is not yet supported.
-You can run MySql on a Linux and a Windows machine, OSX is not supported, maybe in the future...
+MySql.LightServer are supported in these frameworks:
+* Net Framework 4.5.2
+* Net Framework 4.6
+* Net Framework 4.6.1
+* Net Framework 4.6.2
+* Net Standard 1.6 (NET Core)
+
+You can run MySql on a Linux (NET Core) or a Windows machine, OSX is not supported, maybe in the future...
 
 ## How it works
 Mysql.LightServer is simply running a minimal instance of MySql for tests. Server is created at run time and cleared at finish.
