@@ -7,7 +7,7 @@ namespace MySql.LightServer.Server
 {
     internal class WindowsServer : Server
     {
-        protected override string ServerFilesResourceName => "MySql.LightServer.ServerFiles.mysql-lightserver-win32.zip";
+        protected override string ServerFilesResourceName => "mysql-lightserver-win32.zip";
 
         public WindowsServer(string rootPath, int port)
         {

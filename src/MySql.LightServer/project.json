@@ -1,15 +1,4 @@
 {
-  "buildOptions": {
-    "embed": {
-      "includeFiles": [
-        "ServerFiles/mysql-lightserver-win32.zip",
-        "ServerFiles/mysql-lightserver-linux.zip"
-      ]
-    },
-    "copyToOutput": [
-      "ServerFiles/*.zip"
-    ]
-  },
   "frameworks": {
     "net462": {
       "dependencies": {
@@ -65,23 +54,24 @@
   "tools": {
     "dotnet-version": "1.1.0"
   },
-  "version": "2.0.0-*",
+  "version": "1.0.0-*",
   "title": "MySql.LightServer",
   "authors": [
     "Carlos Jimenez Delgado <mail@carlosjdelgado.com>"
   ],
-  "description": "MySql light server for C# tests",
+  "description": "MySql light server for tests",
   "packOptions": {
     "files": {
       "mappings": {
-        "build/MySql.LightServer.targets": {
-          "includeFiles": "./ServerFiles/MySql.LightServer.targets"
+        "build/": {
+          "includeFiles": [
+            "./Package/build/MySql.LightServer.targets",
+            "./Package/build/mysql-lightserver-linux.zip",
+            "./Package/build/mysql-lightserver-win32.zip"
+          ]
         },
-        "build/mysql-lightserver-linux.zip": {
-          "includeFiles": "./ServerFiles/mysql-lightserver-linux.zip"
-        },
-        "build/mysql-lightserver-win32.zip": {
-          "includeFiles": "./ServerFiles/mysql-lightserver-win32.zip"
+        "lib/netstandard1.6/": {
+          "includeFiles": "./Package/lib/netstandard1.6/contentReferences.json"
         }
       }
     },
@@ -97,5 +87,8 @@
       "test",
       "light"
     ]
+  },
+  "dependencies": {
+    "Newtonsoft.Json": "9.0.1"
   }
 }

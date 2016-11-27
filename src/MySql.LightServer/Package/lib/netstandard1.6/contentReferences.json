@@ -1,0 +1,4 @@
+﻿{
+  "mysql-lightserver-linux.zip": "../../build/mysql-lightserver-linux.zip",
+  "mysql-lightserver-win32.zip": "../../build/mysql-lightserver-win32.zip"
+}

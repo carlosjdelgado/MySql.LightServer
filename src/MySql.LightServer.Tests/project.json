@@ -1,6 +1,18 @@
 {
   "version": "1.0.0-*",
   "testRunner": "nunit",
+  "buildOptions": {
+    "copyToOutput": {
+      "mappings": {
+        "mysql-lightserver-win32.zip": {
+          "includeFiles": "../MySql.LightServer/Package/build/mysql-lightserver-win32.zip"
+        },
+        "mysql-lightserver-linux.zip": {
+          "includeFiles": "../MySql.LightServer/Package/build/mysql-lightserver-linux.zip"
+        }
+      }
+    }
+  },  
   "dependencies": {
     "MySql.LightServer": "1.0.0-*"
   },

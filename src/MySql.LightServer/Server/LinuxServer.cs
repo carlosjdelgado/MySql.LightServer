@@ -8,7 +8,7 @@ namespace MySql.LightServer.Server
 {
     internal class LinuxServer : Server
     {
-        protected override string ServerFilesResourceName => "MySql.LightServer.ServerFiles.mysql-lightserver-linux.zip";
+        protected override string ServerFilesResourceName => "mysql-lightserver-linux.zip";
 
         public LinuxServer(string rootPath, int port)
         {
